@@ -1,0 +1,21 @@
+<resources>
+    <!--
+    TODO: Before you run your application, you need a Google Maps API key.
+
+    To get one, follow this link, follow the directions and press "Create" at the end:
+
+    https://console.developers.google.com/flows/enableapi?apiid=maps_android_backend&keyType=CLIENT_SIDE_ANDROID&r=8A:A4:1A:A5:B0:BD:FB:A2:83:5A:B5:23:8A:A8:BF:8B:60:83:DD:F4%3Bcom.example.ohiris.route
+
+    You can also add your credentials to an existing key, using this line:
+    8A:A4:1A:A5:B0:BD:FB:A2:83:5A:B5:23:8A:A8:BF:8B:60:83:DD:F4;com.example.ohiris.route
+
+    Alternatively, follow the directions here:
+    https://developers.google.com/maps/documentation/android/start#get-key
+
+    Once you have your key (it starts with "AIza"), replace the "google_maps_key"
+    string in this file.
+    -->
+    <string name="google_maps_key" translatable="false" templateMergeStrategy="preserve">
+        AIzaSyBceBIRG-2AQ9uGLimnUJRYXOWiRd7_YlU
+    </string>
+</resources>
