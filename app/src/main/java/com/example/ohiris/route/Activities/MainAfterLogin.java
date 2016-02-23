@@ -8,7 +8,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
-import com.example.ohiris.route.BackSupporters.PermissionUtils;
 import com.example.ohiris.route.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -103,7 +102,8 @@ public class MainAfterLogin extends AppCompatActivity implements OnMyLocationBut
         seePro_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                //delete all tables
+                Intent intent = new Intent(MainAfterLogin.this, DeleteActivity.class);
+                startActivity(intent);
 
             }
         });
@@ -123,12 +123,7 @@ public class MainAfterLogin extends AppCompatActivity implements OnMyLocationBut
      * Enables the My Location layer if the fine location permission has been granted.
      */
     private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission to access the location is missing.
-            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
-                    Manifest.permission.ACCESS_FINE_LOCATION, true);
-        } else if (mMap != null) {
+        if (mMap != null) {
             // Access to the location has been granted to the app.
             mMap.setMyLocationEnabled(true);
         }
@@ -147,17 +142,8 @@ public class MainAfterLogin extends AppCompatActivity implements OnMyLocationBut
         super.onResumeFragments();
         if (mPermissionDenied) {
             // Permission was not granted, display error dialog.
-            showMissingPermissionError();
             mPermissionDenied = false;
         }
-    }
-
-    /**
-     * Displays a dialog with error message explaining that the location permission is missing.
-     */
-    private void showMissingPermissionError() {
-        PermissionUtils.PermissionDeniedDialog
-                .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
 
     @Override

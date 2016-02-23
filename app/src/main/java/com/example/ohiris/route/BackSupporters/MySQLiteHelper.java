@@ -14,6 +14,7 @@ import java.util.List;
 
 public class MySQLiteHelper extends SQLiteOpenHelper{
     private final static int DB_VERSION = 10;
+    private final static String DATABASE_NAME = "route.db";
     private final static String TABLE_NAME_USERS = "users";
     private final static String TABLE_NAME_ROUTES = "routes";
 
@@ -27,7 +28,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper{
 
 
     public MySQLiteHelper(Context context) {
-        super(context, "route.db", null,DB_VERSION);
+        super(context, DATABASE_NAME, null,DB_VERSION);
         Log.d("122222222", "en");
     }
 
@@ -184,8 +185,13 @@ public class MySQLiteHelper extends SQLiteOpenHelper{
     }
 
 
-    public void deleteAll(){
+    public void deleteAll(Context context){
+//        SQLiteDatabase db = this.getWritableDatabase();
+//        db.execSQL("DROP TABLE IF EXISTS users");
+//        db.execSQL("DROP TABLE IF EXISTS routes");
+//        db.execSQL("D");
 
+        context.deleteDatabase(DATABASE_NAME);
     }
 
 }

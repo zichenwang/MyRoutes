@@ -66,6 +66,8 @@
         </activity>
         <activity android:name=".Activities.ShowRoutes" >
         </activity>
+        <activity android:name=".Activities.DeleteActivity" >
+        </activity>
     </application>
 
 </manifest>

@@ -13,9 +13,7 @@ import android.location.LocationManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
-import com.example.ohiris.route.BackSupporters.CreateRouteBack;
 import com.example.ohiris.route.BackSupporters.MySQLiteHelper;
-import com.example.ohiris.route.BackSupporters.PermissionUtils;
 import com.example.ohiris.route.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -329,15 +327,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
      * Enables the My Location layer if the fine location permission has been granted.
      */
     private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission to access the location is missing.
-            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
-                    Manifest.permission.ACCESS_FINE_LOCATION, true);
-        } else if (mMap != null) {
-            // Access to the location has been granted to the app.
             mMap.setMyLocationEnabled(true);
-        }
     }
 
     @Override
@@ -354,17 +344,8 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
         super.onResumeFragments();
         if (mPermissionDenied) {
             // Permission was not granted, display error dialog.
-            showMissingPermissionError();
             mPermissionDenied = false;
         }
-    }
-
-    /**
-     * Displays a dialog with error message explaining that the location permission is missing.
-     */
-    private void showMissingPermissionError() {
-        PermissionUtils.PermissionDeniedDialog
-                .newInstance(true).show(getSupportFragmentManager(), "dialog");
     }
 
 }

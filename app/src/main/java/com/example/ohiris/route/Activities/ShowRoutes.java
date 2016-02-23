@@ -16,7 +16,6 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.example.ohiris.route.BackSupporters.MySQLiteHelper;
-import com.example.ohiris.route.BackSupporters.PermissionUtils;
 import com.example.ohiris.route.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
@@ -187,12 +186,7 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
      * Enables the My Location layer if the fine location permission has been granted.
      */
     private void enableMyLocation() {
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-            // Permission to access the location is missing.
-            PermissionUtils.requestPermission(this, LOCATION_PERMISSION_REQUEST_CODE,
-                    Manifest.permission.ACCESS_FINE_LOCATION, true);
-        } else if (mMap != null) {
+       if (mMap != null) {
             // Access to the location has been granted to the app.
             mMap.setMyLocationEnabled(true);
         }
