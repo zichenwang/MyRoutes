@@ -31,11 +31,13 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import android.Manifest;
 import android.content.pm.PackageManager;
 import android.support.v4.content.ContextCompat;
+import android.util.Log;
 import android.widget.CompoundButton;
 import android.widget.Toast;
 import android.widget.ToggleButton;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -43,6 +45,7 @@ import java.util.List;
  */
 public class Map extends AppCompatActivity implements OnMyLocationButtonClickListener,
         GoogleMap.OnMyLocationChangeListener {
+    private static final String TAG = "Map";
 
     private static final int MAP_ZOOM = 18; // Google Maps supports 1-21
     private static final int MAP_BEARING = 180;
@@ -75,6 +78,9 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
     private long startTime;
 
     private long userId;
+
+    private Date startDate;
+    private Date endDate;
 
     /**
      * Flag indicating whether a requested permission has been denied after returning in
@@ -205,6 +211,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
                 tracking = false;
                 startLatLng = null;
                 endLatLng = currentLatLng;
+                endDate = new Date();
                 if (endLatLng != null) {
                     latList.add(endLatLng);
                 }
@@ -221,25 +228,30 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
                 dialogBuilder.setTitle(R.string.results);
 
                 double distanceKM = distance / 1000.0;
-                double speedKM = distanceKM / totalHours;
-                double distanceMI = distanceKM * MILES_PER_KILOMETER;
-                double speedMI = distanceMI / totalHours;
+                final double speedKM = distanceKM / totalHours;
+                final double distanceMI = distanceKM * MILES_PER_KILOMETER;
+                final double speedMI = distanceMI / totalHours;
+                final long diff = endDate.getTime() - startDate.getTime();
 
                 DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
                         switch (i){
                             case DialogInterface.BUTTON_POSITIVE:
-                                //Toast.makeText(Map.this, "here" , Toast.LENGTH_SHORT).show();
-//                                CreateRouteBack createRouteBack = new CreateRouteBack(userId, latList, Map.this);
-//                                int res = createRouteBack.insertPoints(userId);
-//                                Toast.makeText(Map.this, ""+res , Toast.LENGTH_SHORT).show();
+
+
 
                                 MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Map.this, userId);
-                                long res = mySQLiteHelper.insertPoints(userId, latList);
-                                Toast.makeText(Map.this, ""+res , Toast.LENGTH_SHORT).show();
+                                int res = mySQLiteHelper.insertPoints(userId, latList);
+                                Log.d(TAG, "routeid: " + res);
 
-                                Intent intent = new Intent(Map.this, MainAfterLogin.class);
+                                Intent intent = new Intent(Map.this, CreateRoute.class);
+                                intent.putExtra("time", diff);
+                                intent.putExtra("dist", distanceMI);
+                                intent.putExtra("speed", speedMI);
+                                intent.putExtra("routeId", res);
+                                intent.putExtra("userId", userId);
+
                                 startActivity(intent);
 
                                 break;
@@ -251,10 +263,8 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
                 };
 
                 // display distanceTraveled traveled and average speed
-                dialogBuilder.setMessage(String.format(
-                        getResources().getString(R.string.results_format),
-                        distanceKM, distanceMI, speedKM, speedMI)).setPositiveButton("SAVE", dialogClickListener)
-                        .setNegativeButton("DROP", dialogClickListener);
+                dialogBuilder.setMessage("Good job! Do you want to save this route?").setPositiveButton("Yes", dialogClickListener)
+                        .setNegativeButton("No", dialogClickListener);
 
                 dialogBuilder.show(); // display the dialog
 
@@ -265,7 +275,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
                 latList.clear();
 
                 //start tracking
-
+                startDate = new Date();
                 currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
                 startLatLng = currentLatLng;//store start location
                 tracking = true;

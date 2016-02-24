@@ -15,83 +15,105 @@
         android:layout_height="wrap_content">
 
         <EditText
-            android:id="@+id/text_route_name"
+            android:id="@+id/editText_route_name"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="@string/route_name"
             android:maxLines="1"
             android:singleLine="true" />
 
+
     </LinearLayout>
 
     <TableLayout
+        android:id="@+id/tableLayout"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/linearyout_create_name"
-        android:id="@+id/tableLayout">
+        android:layout_marginTop="50px">
 
         <TableRow
-            android:layout_height="wrap_content"
-            android:layout_width="match_parent">
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
             <TextView
-                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Time:"/>
+                android:text="Time:"
+                android:textSize="40px" />
 
             <TextView
                 android:id="@+id/text_time"
-                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:layout_weight="2"/>
+                android:layout_height="wrap_content"
+                android:layout_weight="2" />
 
         </TableRow>
 
         <TableRow
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_width="match_parent">
+            android:layout_marginTop="10dp">
 
             <TextView
-                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Distance:"/>
+                android:text="Distance:"
+                android:textSize="40px" />
 
             <TextView
                 android:id="@+id/text_dist"
-                android:layout_height="wrap_content"
                 android:layout_width="match_parent"
-                android:layout_weight="2"/>
+                android:layout_height="wrap_content"
+                android:layout_weight="2" />
+
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Speed:"
+                android:textSize="40px" />
+
+            <TextView
+                android:id="@+id/text_speed"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2" />
 
         </TableRow>
 
     </TableLayout>
 
     <AbsoluteLayout
+        android:id="@+id/absolutelayout_create"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:id="@+id/absolutelayout_create"
-        android:layout_centerHorizontal="true"
         android:layout_below="@id/tableLayout"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="100dp">
-
-
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="100dp"
+        android:layout_marginTop="30dp">
 
 
     </AbsoluteLayout>
-
 
 
     <LinearLayout
         android:id="@+id/linearLayout_create"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:layout_alignParentBottom="true"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true">
+        android:layout_alignParentStart="true"
+        android:orientation="vertical">
 
 
         <CheckBox
@@ -101,15 +123,12 @@
             android:text="@string/whether_share" />
 
         <Button
+            android:id="@+id/btn_save_route"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/save"/>
+            android:text="@string/save" />
 
     </LinearLayout>
-
-
-
-
 
 
 </RelativeLayout>

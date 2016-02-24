@@ -22,7 +22,7 @@
     <string name="create">Create a Route</string>
     <string name="community">Community</string>
     <string name="sort">Sort by: </string>
-    <string name="route_name">Name your route</string>
+    <string name="route_name">Name your route here</string>
     <string name="whether_share">Share to community</string>
     <string name="choose_color">Choose a colour</string>
     <string name="save">Save</string>

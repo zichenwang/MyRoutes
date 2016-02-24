@@ -30,8 +30,11 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.List;
+import java.util.Random;
 
 public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocationButtonClickListener{
+    private static final String TAG = "ShowRoutes";
+
     private long userId;
     private List<LatLng> list;
 
@@ -76,6 +79,7 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
             return;
         }
         this.userId = extras.getLong("userId");
+        Log.d(TAG, "userId " + userId);
 
         setRoutes();
     }
@@ -84,11 +88,11 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
         mySQLiteHelper = new MySQLiteHelper(getBaseContext());
 
         int size = mySQLiteHelper.getRoutesNum(userId);
-        Log.d("11111111size", "" + size);
+        Log.d(TAG, "how many routes in total " + size);
 
         for (int i = 0; i < size; i++) {
             int j = i + 1;
-            List<LatLng> list = mySQLiteHelper.getRoutes(""+ j);
+            List<LatLng> list = mySQLiteHelper.getRoutes(userId, ""+ j);
             drawRoutes(list);
         }
     }
@@ -96,12 +100,17 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
     public void drawRoutes(List<LatLng> list) {
         Toast.makeText(ShowRoutes.this, "success", Toast.LENGTH_SHORT).show();
 
-        PolylineOptions polylineOptions = new PolylineOptions().width(10).color(Color.BLUE).geodesic(true);
+//        Color randomColor = colorGenerator();
+        Random rnd = new Random();
+        int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
+        Log.d(TAG, "color: " + color);
 
-        for (int i = 0; i < list.size()-1; i++) {
+
+
+        PolylineOptions polylineOptions = new PolylineOptions().width(10).color(color).geodesic(true);
+
+        for (int i = 0; i < list.size(); i++) {
             polylineOptions.add(list.get(i));
-            polylineOptions.add(list.get(i+1));
-            Log.d("33333", "" +list.get(i).latitude);
         }
 
         mMap.addPolyline(polylineOptions);
@@ -199,4 +208,16 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
         // (the camera animates to the user's current position).
         return false;
     }
+
+//    public Color colorGenerator(){
+//        Random rand = new Random();
+//
+//        float r = rand.nextFloat();
+//        float g = rand.nextFloat();
+//        float b = rand.nextFloat();
+//
+//        Color color = new Color(r, g, b);
+//
+//        return color;
+//    }
 }
