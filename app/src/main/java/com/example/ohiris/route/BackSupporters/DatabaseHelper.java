@@ -15,6 +15,7 @@ import java.util.Properties;
 
 public class DatabaseHelper {
 
+    private static final String TAG = "DatabaseHelper";
 
     private final static String TABLE_NAME_USERS = "myroutesusers";
     private final static String TABLE_NAME_ROUTES = "myroutesroutes";
@@ -25,6 +26,7 @@ public class DatabaseHelper {
         connectToServer();
 
     }
+
 
     private static void connectToServer() {
 
