@@ -29,7 +29,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private final static String CREATE_TABLE_USERS = "create table " + TABLE_NAME_USERS + " (userId Integer primary key autoincrement, " +
             " username text, email text, password text)";
 
-    private final static String CREATE_TABLE_ROUTES = "create table " + TABLE_NAME_ROUTES + " (routeId Integer primary key, " +
+    private final static String CREATE_TABLE_ROUTES = "create table " + TABLE_NAME_ROUTES + " (routeId Integer, " +
             "userId Integer, " + "name text, time Integer, speed real, distance real, share Integer)";
 
 
@@ -81,7 +81,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         values.put("username", queryValues.getName());
         values.put("email", queryValues.getEmail());
         values.put("password", queryValues.getPassword());
-        queryValues.setId(database.insert(TABLE_NAME_USERS, null, values));
+
+        final long userid = database.insert(TABLE_NAME_USERS, null, values);
+        queryValues.setId(userid);
         database.close();
 
         final UserAccount userAccount = queryValues;
@@ -89,9 +91,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             @Override
             protected Void doInBackground(Integer... params) {
                 try {
-                    databaseHelper = new DatabaseHelper();
-
-                    databaseHelper.connectToDB_insertUser(userAccount);
+//                    databaseHelper = new DatabaseHelper();
+//                    databaseHelper.connectToDB_insertUser(userAccount, userid);
 
 
                 } catch (Exception e) {
@@ -130,7 +131,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return myUser;
     }
 
-    public int insertPoints(long userid, List<LatLng> list) {
+    public int insertPoints(final long userid, List<LatLng> list) {
         this.userId = userid;
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -164,6 +165,25 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         int res = test(routeid);
         db.close();
+
+        final long useridDB = userid;
+        final int routeidDB =routeid;
+        final List<LatLng> listDB = list;
+        new AsyncTask<Integer, Void, Void>() {
+            @Override
+            protected Void doInBackground(Integer... params) {
+                try {
+
+                    databaseHelper = new DatabaseHelper();
+                    databaseHelper.connectToDB_insertRoutes(useridDB, routeidDB, listDB);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute(1);
+
 
         return res;
 
@@ -231,14 +251,29 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         initialValues.put("userId", route.getUserId());
         initialValues.put("name", route.getName());
         initialValues.put("time", route.getTime());
-        initialValues.put("distance", route.getDistance());
         initialValues.put("speed", route.getSpeed());
+        initialValues.put("distance", route.getDistance());
         initialValues.put("share", share);
         Log.d(TAG, initialValues.toString());
         db.insert(TABLE_NAME_ROUTES, null, initialValues);
 
         int res = testR(route.getRouteId());
         db.close();
+
+        final Route routeDB = route;
+        new AsyncTask<Integer, Void, Void>() {
+            @Override
+            protected Void doInBackground(Integer... params) {
+                try {
+                    databaseHelper = new DatabaseHelper();
+                    databaseHelper.connectToDB_insertDetails(routeDB);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute(1);
 
         return res;
     }

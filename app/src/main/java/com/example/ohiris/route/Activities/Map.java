@@ -243,7 +243,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
 
                                 MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Map.this, userId);
                                 int res = mySQLiteHelper.insertPoints(userId, latList);
-                                Log.d(TAG, "routeid: " + res);
+                                Log.d(TAG, "number of points: " + res);
 
                                 Intent intent = new Intent(Map.this, CreateRoute.class);
                                 intent.putExtra("time", diff);
