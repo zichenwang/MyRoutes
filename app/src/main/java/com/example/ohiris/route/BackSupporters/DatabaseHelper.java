@@ -14,10 +14,7 @@ import java.util.List;
 import java.util.Properties;
 
 public class DatabaseHelper {
-    private static final String TAG = "DatabaseHelper";
-    private static String url = "jdbc:mysql://127.0.0.1:3306/mhealthplay";
-    private static String username = "mhealth";
-    private static String password = "mhealth";
+
 
     private final static String TABLE_NAME_USERS = "myroutesusers";
     private final static String TABLE_NAME_ROUTES = "myroutesroutes";
@@ -30,9 +27,7 @@ public class DatabaseHelper {
     }
 
     private static void connectToServer() {
-        String user = "zwd753";
-        String password = "Tsubasa530!";
-        String host = "murphy.wot.eecs.northwestern.edu";
+
 
         int port = 22;
 
