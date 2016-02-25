@@ -5,12 +5,15 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.os.AsyncTask;
 import android.util.Log;
 
 import com.google.android.gms.maps.model.LatLng;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
+
 
 public class MySQLiteHelper extends SQLiteOpenHelper {
     private static final String TAG = "MySQLiteHelper";
@@ -20,6 +23,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private final static String TABLE_NAME_ROUTES = "routes";
 
     private long userId;
+
+    private DatabaseHelper databaseHelper;
 
     private final static String CREATE_TABLE_USERS = "create table " + TABLE_NAME_USERS + " (userId Integer primary key autoincrement, " +
             " username text, email text, password text)";
@@ -78,6 +83,26 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         values.put("password", queryValues.getPassword());
         queryValues.setId(database.insert(TABLE_NAME_USERS, null, values));
         database.close();
+
+        final UserAccount userAccount = queryValues;
+        new AsyncTask<Integer, Void, Void>() {
+            @Override
+            protected Void doInBackground(Integer... params) {
+                try {
+                    databaseHelper = new DatabaseHelper();
+
+                    databaseHelper.connectToDB_insertUser(userAccount);
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute(1);
+
+
+
         return queryValues;
     }
 
@@ -215,10 +240,10 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         int res = testR(route.getRouteId());
         db.close();
 
-       return res;
+        return res;
     }
 
-    public int testR(int rId){
+    public int testR(int rId) {
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor mCount = db.rawQuery("select count(*) from routes where routeId = '" + rId + "'", null);
         mCount.moveToFirst();
@@ -240,5 +265,31 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         context.deleteDatabase(DATABASE_NAME);
     }
+
+//    public class CreateUserTask extends AsyncTask<Void, Void, Boolean> {
+//        private static final String TAG = "CreateUserTask";
+//        private final UserAccount userAccount;
+//
+//        public CreateUserTask (UserAccount userAccount){
+//            this.userAccount = userAccount;
+//
+//        }
+//        @Override
+//        protected Boolean doInBackground(Void... voids) {
+//
+//            try {
+//                databaseHelper = new DatabaseHelper();
+//                databaseHelper.connectToDB_insertUser(userAccount);
+//                Log.d(TAG, "hereconnect");
+//
+//            } catch (Exception e) {
+//                e.printStackTrace();
+//            }
+//
+//            return true;
+//
+//
+//        }
+//    }
 
 }
