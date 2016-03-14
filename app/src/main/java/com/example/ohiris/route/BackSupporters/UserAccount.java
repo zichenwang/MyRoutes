@@ -7,6 +7,12 @@ public class UserAccount {
     private String email;
     private String password;
 
+    private String gender;
+    private int age;
+    private double height;
+    private int weight;
+    private int activeLevel;
+
     public  UserAccount(){
 
     }
@@ -50,4 +56,45 @@ public class UserAccount {
     public void setId(long id) {
         this.id = id;
     }
+
+    public double getHeight() {
+        return height;
+    }
+
+    public int getActiveLevel() {
+        return activeLevel;
+    }
+
+    public int getAge() {
+        return age;
+    }
+
+    public int getWeight() {
+        return weight;
+    }
+
+    public String getGender() {
+        return gender;
+    }
+
+    public void setActiveLevel(int activeLevel) {
+        this.activeLevel = activeLevel;
+    }
+
+    public void setAge(int age) {
+        this.age = age;
+    }
+
+    public void setGender(String gender) {
+        this.gender = gender;
+    }
+
+    public void setHeight(double height) {
+        this.height = height;
+    }
+
+    public void setWeight(int weight) {
+        this.weight = weight;
+    }
 }
+

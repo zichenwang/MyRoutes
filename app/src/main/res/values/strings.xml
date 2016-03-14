@@ -59,4 +59,27 @@
     <string name="permission_required_toast">Location permission is required for this demo.</string>
     <string name="title_activity_signup2">Signup2</string>
     <string name="title_activity_login">Sign in</string>
+
+    <!-- Arrays -->
+
+    <string-array name="ft_array">
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+    </string-array>
+
+    <string-array name="in_array">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+        <item>6</item>
+        <item>7</item>
+        <item>8</item>
+        <item>9</item>
+    </string-array>
+
 </resources>

@@ -64,24 +64,27 @@ public class Signup1 extends AppCompatActivity {
                 if (!p1.equals(p2)){
                     Toast.makeText(Signup1.this, "Passwords don't match!", Toast.LENGTH_SHORT).show();
                 } else {
-                    userAccount = new UserAccount();
-                    userAccount.setEmail(eStr);
-                    userAccount.setPassword(p1);
-                    userAccount.setName(nameStr);
+//                    userAccount = new UserAccount();
+//                    userAccount.setEmail(eStr);
+//                    userAccount.setPassword(p1);
+//                    userAccount.setName(nameStr);
 
                     //insert the information in database
                     try {
-                        mySQLiteHelper = new MySQLiteHelper(Signup1.this);
-                        userAccount = mySQLiteHelper.insertUser(userAccount);
+//                        mySQLiteHelper = new MySQLiteHelper(Signup1.this);
+//                        userAccount = mySQLiteHelper.insertUser(userAccount);
 
-                        long id = userAccount.getId();
-                        Intent intent = new Intent(Signup1.this, MainAfterLogin.class);
-                        intent.putExtra("userId", id);
+//                        long id = userAccount.getId();
+                        Intent intent = new Intent(Signup1.this, Signup2.class);
+//                        intent.putExtra("userId", id);
+                        intent.putExtra("username", nameStr);
+                        intent.putExtra("password", p1);
+                        intent.putExtra("email", eStr);
                         startActivity(intent);
                     } finally {
-                        if (mySQLiteHelper != null) {
-                            mySQLiteHelper.close();
-                        }
+//                        if (mySQLiteHelper != null) {
+//                            mySQLiteHelper.close();
+//                        }
 
                     }
 

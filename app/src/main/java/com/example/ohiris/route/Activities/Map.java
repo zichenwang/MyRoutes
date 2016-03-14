@@ -231,7 +231,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
                 final double speedKM = distanceKM / totalHours;
                 final double distanceMI = distanceKM * MILES_PER_KILOMETER;
                 final double speedMI = distanceMI / totalHours;
-                final long diff = endDate.getTime() - startDate.getTime();
+                final long diff = endDate.getTime() - startDate.getTime();//milliseconds
 
                 DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                     @Override
@@ -243,7 +243,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
 
                                 MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Map.this, userId);
                                 int res = mySQLiteHelper.insertPoints(userId, latList);
-                                Log.d(TAG, "number of points: " + res);
+                                Log.d(TAG, "route id: " + res);
 
                                 Intent intent = new Intent(Map.this, CreateRoute.class);
                                 intent.putExtra("time", diff);
@@ -300,8 +300,15 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
         tempLocation = currentLocation;
         currentLocation = location;
 
-        if (tracking) {
+        currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        CameraPosition cameraPosition1 = new CameraPosition.Builder()
+                .target(currentLatLng)
+                .zoom(MAP_ZOOM)
+                .bearing(0)
+                .build();
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition1));
 
+        if (tracking) {
 
             distance = distance + (long) tempLocation.distanceTo(currentLocation);
 

@@ -15,6 +15,9 @@ import com.example.ohiris.route.BackSupporters.MySQLiteHelper;
 import com.example.ohiris.route.BackSupporters.Route;
 import com.example.ohiris.route.R;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class CreateRoute extends AppCompatActivity {
     private static final String TAG = "CreateRoute";
 
@@ -40,6 +43,10 @@ public class CreateRoute extends AppCompatActivity {
 
     private Route route;
 
+    private Date date;
+    private String dateStr;
+    //private SimpleDateFormat sfd = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -54,10 +61,13 @@ public class CreateRoute extends AppCompatActivity {
         userId = extras.getLong("userId");
         routeId = extras.getInt("routeId");
         time = extras.getLong("time");
-        time = time / 1000 % 60;
+        time = time / 1000;//seconds
 
         distance = extras.getDouble("dist");
         speed = extras.getDouble("speed");
+
+        date = new Date();
+        dateStr = date.toString();
 
         et_name = (EditText) findViewById(R.id.editText_route_name);
 
@@ -88,10 +98,12 @@ public class CreateRoute extends AppCompatActivity {
                 name = et_name.getText().toString();
                 Log.d(TAG, "name of the route: " + name);
 
-                route = new Route(userId, routeId, time, distance, speed, name, share);
+                route = new Route(userId, routeId, time, distance, speed, name, share, dateStr);
                 MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(CreateRoute.this, userId);
                 int res = mySQLiteHelper.createRoute(route);
                 Log.d(TAG, "number of entries: " + res);
+
+                finish();
 
                 Intent intent = new Intent(CreateRoute.this, MainAfterLogin.class);
                 intent.putExtra("userId", userId);

@@ -168,6 +168,14 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
         locationManager.requestLocationUpdates(provider, 10000, 1, new LocationListener() {
             @Override
             public void onLocationChanged(Location location) {
+                currentLocation = location;
+                currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+                CameraPosition cameraPosition = new CameraPosition.Builder()
+                        .target(currentLatLng)
+                        .zoom(MAP_ZOOM)
+                        .bearing(0)
+                        .build();
+                mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
 
             }
 
