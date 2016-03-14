@@ -9,6 +9,7 @@ import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 
 import com.example.ohiris.route.R;
+import com.example.ohiris.route.Test.Main2Activity;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.LocationServices;
@@ -102,7 +103,7 @@ public class MainAfterLogin extends AppCompatActivity implements OnMyLocationBut
         seePro_btn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainAfterLogin.this, DeleteActivity.class);
+                Intent intent = new Intent(MainAfterLogin.this, Main2Activity.class);
                 startActivity(intent);
 
             }

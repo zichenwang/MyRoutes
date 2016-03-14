@@ -64,6 +64,9 @@ public class DatabaseHelper {
 
     }
 
+//    "create table " + TABLE_NAME_USERS + " (userId Integer primary key autoincrement, " +
+//            " username text, email text, password text, gender text, age Integer, height real, weight Integer, activelevel Integer)"
+
     public void connectToDB_insertUser(UserAccount userAccount, long id){
         //connectToServer();
         Connection conn;
@@ -71,7 +74,7 @@ public class DatabaseHelper {
         try {
             String driverName = "com.mysql.jdbc.Driver";
             Class.forName(driverName);
-            String s = "INSERT INTO " + TABLE_NAME_USERS + " VALUES(?,?,?,?)";
+            String s = "INSERT INTO " + TABLE_NAME_USERS + " VALUES(?,?,?,?,?,?,?,?,?)";
 
             conn = (Connection) DriverManager.getConnection(url, username, password);
 
@@ -83,6 +86,11 @@ public class DatabaseHelper {
                 tem.setString(2, userAccount.getName());
                 tem.setString(3, userAccount.getEmail());
                 tem.setString(4, userAccount.getPassword());
+                tem.setString(5, userAccount.getGender());
+                tem.setInt(6, userAccount.getAge());
+                tem.setDouble(7, userAccount.getHeight());
+                tem.setInt(8, userAccount.getWeight());
+                tem.setInt(9, userAccount.getActiveLevel());
                 Log.d(TAG, "insert user success");
 
                 tem.executeUpdate();
@@ -140,6 +148,10 @@ public class DatabaseHelper {
         }
     }
 
+    //    private final static String CREATE_TABLE_ROUTES = "create table " + TABLE_NAME_ROUTES + " (routeId Integer, " +
+//            "userId Integer, " + "name text, time Integer, speed real, distance real, date text, level Integer, share Integer)";
+
+
     public void connectToDB_insertDetails(Route route) throws SQLException{
 //        connectToServer();
         Connection conn;
@@ -147,7 +159,7 @@ public class DatabaseHelper {
         try {
             String driverName = "com.mysql.jdbc.Driver";
             Class.forName(driverName);
-            String s = "INSERT INTO " + TABLE_NAME_DETAILS + " VALUES(?,?,?,?,?,?,?)";
+            String s = "INSERT INTO " + TABLE_NAME_DETAILS + " VALUES(?,?,?,?,?,?,?,?,?)";
             int share = 0;
             if (route.getShare()) {
                 share = 1;
@@ -160,13 +172,15 @@ public class DatabaseHelper {
                 PreparedStatement tem = conn.prepareStatement(s);
 
                 //things need to input
-                tem.setLong(1,route.getUserId());
-                tem.setInt(2, route.getRouteId());
+                tem.setInt(1,route.getRouteId());
+                tem.setLong(2, route.getUserId());
                 tem.setString(3, route.getName());
                 tem.setLong(4, route.getTime());
                 tem.setDouble(5, route.getSpeed());
                 tem.setDouble(6, route.getDistance());
-                tem.setInt(7, share);
+                tem.setString(7, route.getDate());
+                tem.setInt(8, route.getLevel());
+                tem.setInt(9, share);
 
                 Log.d(TAG, "insert details success");
 

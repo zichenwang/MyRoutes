@@ -11,21 +11,25 @@ public class Route {
     private String name;
     private Boolean share;
 
+    private int level;
+
     private String date;
 
     public Route(){
 
     }
 
-    public Route(long userId, int routeId, long time, double distance, double speed, String name, Boolean share, String date){
+    public Route(long userId, int routeId, long time, double distance, double speed, String name, Boolean share, String date, int levle){
         this.userId = userId;
         this.routeId = routeId;
         this.time = time;
         this.distance = distance;
         this.speed = speed;
         this.name = name;
-        this.share = share;
         this.date = date;
+        this.level = levle;
+        this.share = share;
+
     }
 
     public long getUserId() {
@@ -90,5 +94,13 @@ public class Route {
 
     public String getDate() {
         return date;
+    }
+
+    public int getLevel() {
+        return level;
+    }
+
+    public void setLevel(int level) {
+        this.level = level;
     }
 }

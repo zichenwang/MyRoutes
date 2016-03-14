@@ -30,7 +30,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             " username text, email text, password text, gender text, age Integer, height real, weight Integer, activelevel Integer)";
 
     private final static String CREATE_TABLE_ROUTES = "create table " + TABLE_NAME_ROUTES + " (routeId Integer, " +
-            "userId Integer, " + "name text, time Integer, speed real, distance real, date text, share Integer)";
+            "userId Integer, " + "name text, time Integer, speed real, distance real, date text, level Integer, share Integer)";
 
 
     public MySQLiteHelper(Context context) {
@@ -94,21 +94,19 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         queryValues.setId(userid);
         database.close();
 
-//        final UserAccount userAccount = queryValues;
-//        new AsyncTask<Integer, Void, Void>() {
-//            @Override
-//            protected Void doInBackground(Integer... params) {
-//                try {
-//                    databaseHelper = new DatabaseHelper();
-//                    databaseHelper.connectToDB_insertUser(userAccount, userid);
-//
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                return null;
-//            }
-//        }.execute(1);
+        final UserAccount userAccount = queryValues;
+        new AsyncTask<Integer, Void, Void>() {
+            @Override
+            protected Void doInBackground(Integer... params) {
+                try {
+                    databaseHelper = new DatabaseHelper();
+                    databaseHelper.connectToDB_insertUser(userAccount, userid);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute(1);
 
 
 
@@ -176,20 +174,20 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         final long useridDB = userid;
         final int routeidDB =routeid;
         final List<LatLng> listDB = list;
-//        new AsyncTask<Integer, Void, Void>() {
-//            @Override
-//            protected Void doInBackground(Integer... params) {
-//                try {
-//
-//                    databaseHelper = new DatabaseHelper();
-//                    databaseHelper.connectToDB_insertRoutes(useridDB, routeidDB, listDB);
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                return null;
-//            }
-//        }.execute(1);
+        new AsyncTask<Integer, Void, Void>() {
+            @Override
+            protected Void doInBackground(Integer... params) {
+                try {
+
+                    databaseHelper = new DatabaseHelper();
+                    databaseHelper.connectToDB_insertRoutes(useridDB, routeidDB, listDB);
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute(1);
 
 
         return routeid;
@@ -214,7 +212,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         Cursor mCount = db.rawQuery("select count(*) from " + "(select distinct routeId from routes" + "" + id + " )", null);
         mCount.moveToFirst();
         int res = mCount.getInt(0);
-        Log.d(TAG, "the number of route" + id + " " + res);
+        Log.d(TAG, "get routes id: " + res);
         mCount.close();
         db.close();
 
@@ -245,6 +243,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return list;
     }
 
+//    private final static String CREATE_TABLE_ROUTES = "create table " + TABLE_NAME_ROUTES + " (routeId Integer, " +
+//            "userId Integer, " + "name text, time Integer, speed real, distance real, date text, level Integer, share Integer)";
+
     public int createRoute(Route route) {
         SQLiteDatabase db = this.getWritableDatabase();
 
@@ -262,36 +263,37 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         initialValues.put("distance", route.getDistance());
         initialValues.put("share", share);
         initialValues.put("date", route.getDate());
+        initialValues.put("level", route.getLevel());
+
         Log.d(TAG, initialValues.toString());
         db.insert(TABLE_NAME_ROUTES, null, initialValues);
 
-        int res = testR(route.getRouteId());
+        int res = testR(route.getUserId());
         db.close();
 
         final Route routeDB = route;
-//        new AsyncTask<Integer, Void, Void>() {
-//            @Override
-//            protected Void doInBackground(Integer... params) {
-//                try {
-//                    databaseHelper = new DatabaseHelper();
-//                    databaseHelper.connectToDB_insertDetails(routeDB);
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                return null;
-//            }
-//        }.execute(1);
+        new AsyncTask<Integer, Void, Void>() {
+            @Override
+            protected Void doInBackground(Integer... params) {
+                try {
+                    databaseHelper = new DatabaseHelper();
+                    databaseHelper.connectToDB_insertDetails(routeDB);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return null;
+            }
+        }.execute(1);
 
         return res;
     }
 
-    public int testR(int rId) {
+    public int testR(long uId) {
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor mCount = db.rawQuery("select count(*) from routes where routeId = '" + rId + "'", null);
+        Cursor mCount = db.rawQuery("select count(*) from routes where userId = '" + uId + "'", null);
         mCount.moveToFirst();
         int res = mCount.getInt(0);
-        Log.d(TAG, "number of routes" + rId + " " + res);
+        Log.d(TAG, "user " + uId + " have " + res + " routes recorded");
         mCount.close();
         db.close();
 

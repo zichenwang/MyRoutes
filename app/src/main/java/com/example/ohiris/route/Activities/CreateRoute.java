@@ -31,6 +31,10 @@ public class CreateRoute extends AppCompatActivity {
 
     private CheckBox checkBox;
 
+    private CheckBox checkBox_flat;
+    private CheckBox checkBox_hilly;
+    private CheckBox checkBox_curved;
+
     private long userId;
     private int routeId;
 
@@ -46,6 +50,13 @@ public class CreateRoute extends AppCompatActivity {
     private Date date;
     private String dateStr;
     //private SimpleDateFormat sfd = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
+    private Boolean flat = false;
+    private Boolean hilly = false;
+    private Boolean curved = false;
+
+    private int level = 0;
+
 
 
     @Override
@@ -80,16 +91,12 @@ public class CreateRoute extends AppCompatActivity {
         tv_speed = (TextView) findViewById(R.id.text_speed);
         tv_speed.setText("" + speed + " mi/h");
 
+        checkBox_flat = (CheckBox) findViewById(R.id.checkbox_flat);
+        checkBox_hilly = (CheckBox) findViewById(R.id.checkbox_hilly);
+        checkBox_curved = (CheckBox) findViewById(R.id.checkbox_curved);
         checkBox = (CheckBox) findViewById(R.id.check_share);
-        checkBox.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (checkBox.isChecked()) {
-                    Toast.makeText(CreateRoute.this, "checked", Toast.LENGTH_SHORT).show();
-                    share = true;
-                }
-            }
-        });
+
+        setCheckBoxListener();
 
         btn_save = (Button) findViewById(R.id.btn_save_route);
         btn_save.setOnClickListener(new View.OnClickListener() {
@@ -98,7 +105,15 @@ public class CreateRoute extends AppCompatActivity {
                 name = et_name.getText().toString();
                 Log.d(TAG, "name of the route: " + name);
 
-                route = new Route(userId, routeId, time, distance, speed, name, share, dateStr);
+                if (!hilly && !curved && flat) {
+                    level = 1;
+                } else if (hilly || curved) {
+                    level = 2;
+                } else if (hilly && curved){
+                    level = 3;
+                }
+
+                route = new Route(userId, routeId, time, distance, speed, name, share, dateStr, level);
                 MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(CreateRoute.this, userId);
                 int res = mySQLiteHelper.createRoute(route);
                 Log.d(TAG, "number of entries: " + res);
@@ -110,5 +125,40 @@ public class CreateRoute extends AppCompatActivity {
                 startActivity(intent);
             }
         });
+    }
+
+
+    public void setCheckBoxListener(){
+        checkBox_flat.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                flat = true;
+            }
+        });
+
+        checkBox_hilly.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                hilly = true;
+            }
+        });
+
+        checkBox_curved.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                curved = true;
+            }
+        });
+
+        checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (checkBox.isChecked()) {
+                    Toast.makeText(CreateRoute.this, "checked", Toast.LENGTH_SHORT).show();
+                    share = true;
+                }
+            }
+        });
+
     }
 }

@@ -27,6 +27,7 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.List;
@@ -91,8 +92,7 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
         Log.d(TAG, "how many routes in total " + size);
 
         for (int i = 0; i < size; i++) {
-            int j = i + 1;
-            List<LatLng> list = mySQLiteHelper.getRoutes(userId, ""+ j);
+            List<LatLng> list = mySQLiteHelper.getRoutes(userId, ""+ i);
             drawRoutes(list);
         }
     }
@@ -105,6 +105,9 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
         int color = Color.argb(255, rnd.nextInt(256), rnd.nextInt(256), rnd.nextInt(256));
         Log.d(TAG, "color: " + color);
 
+        //add start and end
+        mMap.addMarker(new MarkerOptions().position(list.get(0)).title("START"));
+        mMap.addMarker(new MarkerOptions().position(list.get(list.size()-1)).title("END"));
 
 
         PolylineOptions polylineOptions = new PolylineOptions().width(10).color(color).geodesic(true);
