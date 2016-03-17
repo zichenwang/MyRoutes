@@ -9,12 +9,14 @@ import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
+import android.os.AsyncTask;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
+import com.example.ohiris.route.BackSupporters.DatabaseHelper;
 import com.example.ohiris.route.BackSupporters.MySQLiteHelper;
 import com.example.ohiris.route.R;
 import com.google.android.gms.common.ConnectionResult;
@@ -30,10 +32,12 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocationButtonClickListener{
+public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocationButtonClickListener,
+        GoogleMap.OnMyLocationChangeListener {
     private static final String TAG = "ShowRoutes";
 
     private long userId;
@@ -47,7 +51,9 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
     private Location currentLocation;
     private LatLng currentLatLng;
 
-    MySQLiteHelper mySQLiteHelper;
+    private MySQLiteHelper mySQLiteHelper;
+
+    private ShowRoutesTask showRoutesTask;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,6 +72,7 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
                 mMap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map2))
                         .getMap();
                 mMap.setMyLocationEnabled(true);
+                mMap.setOnMyLocationChangeListener(this);
 
                 // Check if we were successful in obtaining the map.
                 if (mMap != null) {
@@ -82,20 +89,23 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
         this.userId = extras.getLong("userId");
         Log.d(TAG, "userId " + userId);
 
-        setRoutes();
+//        setRoutes();
+
+        showRoutesTask = new ShowRoutesTask(userId, ShowRoutes.this);
+        showRoutesTask.execute((Void) null);
     }
 
-    public void setRoutes() {
-        mySQLiteHelper = new MySQLiteHelper(getBaseContext());
-
-        int size = mySQLiteHelper.getRoutesNum(userId);
-        Log.d(TAG, "how many routes in total " + size);
-
-        for (int i = 0; i < size; i++) {
-            List<LatLng> list = mySQLiteHelper.getRoutes(userId, ""+ i);
-            drawRoutes(list);
-        }
-    }
+//    public void setRoutes() {
+//        mySQLiteHelper = new MySQLiteHelper(getBaseContext());
+//
+//        int size = mySQLiteHelper.getRoutesNum(userId);
+//        Log.d(TAG, "how many routes in total " + size);
+//
+//        for (int i = 0; i < size; i++) {
+//            List<LatLng> list = mySQLiteHelper.getRoutes(userId, ""+ i);
+//            drawRoutes(list);
+//        }
+//    }
 
     public void drawRoutes(List<LatLng> list) {
         Toast.makeText(ShowRoutes.this, "success", Toast.LENGTH_SHORT).show();
@@ -107,7 +117,7 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
 
         //add start and end
         mMap.addMarker(new MarkerOptions().position(list.get(0)).title("START"));
-        mMap.addMarker(new MarkerOptions().position(list.get(list.size()-1)).title("END"));
+        mMap.addMarker(new MarkerOptions().position(list.get(list.size() - 1)).title("END"));
 
 
         PolylineOptions polylineOptions = new PolylineOptions().width(10).color(color).geodesic(true);
@@ -206,7 +216,7 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
      * Enables the My Location layer if the fine location permission has been granted.
      */
     private void enableMyLocation() {
-       if (mMap != null) {
+        if (mMap != null) {
             // Access to the location has been granted to the app.
             mMap.setMyLocationEnabled(true);
         }
@@ -231,4 +241,94 @@ public class ShowRoutes extends AppCompatActivity implements GoogleMap.OnMyLocat
 //
 //        return color;
 //    }
+
+
+    @Override
+    public void onMyLocationChange(Location location) {
+        currentLocation = location;
+
+        LatLng currentLatLng = new LatLng(currentLocation.getLatitude(), currentLocation.getLongitude());
+        CameraPosition cameraPosition = new CameraPosition.Builder()
+                .target(currentLatLng)
+                .zoom(MAP_ZOOM)
+                .bearing(0)
+                .build();
+        mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+
+    }
+
+
+    public class ShowRoutesTask extends AsyncTask<Void, Void, Boolean> {
+        private long uId;
+        private Context context;
+
+        private MySQLiteHelper mySQLiteHelper;
+        private DatabaseHelper databaseHelper;
+
+        public ShowRoutesTask(long uId, Context context) {
+            this.uId = uId;
+            this.context = context;
+        }
+
+
+        @Override
+        protected Boolean doInBackground(Void... voids) {
+            mySQLiteHelper = new MySQLiteHelper(this.context);
+
+            try {
+
+                int check = 0;
+                databaseHelper = new DatabaseHelper();
+
+                //for each user
+                List<Integer> rIds = new ArrayList<Integer>();
+                rIds = databaseHelper.retrieve_routesNum(uId);
+
+                for (int j = 0; j < rIds.size(); j++) {
+//                            MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Main2Activity.this);
+//                            mySQLiteHelper.storeRoutesFromMysql((long)i, j);
+
+                    List<LatLng> list = databaseHelper.retrieve_routes(uId, j);
+
+//                            drawRoutes(list);
+
+                    Log.d(TAG, "size of the list: " + list.size());
+                    MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(ShowRoutes.this);
+                    check = mySQLiteHelper.storeRoutesFromMysql(list, uId, j);
+                }
+
+
+                if (check > 0) {
+                    return true;
+                } else {
+                    return false;
+                }
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return false;
+        }
+
+        @Override
+        protected void onPostExecute(final Boolean success) {
+            super.onPostExecute(success);
+
+            if (success) {
+                //get routes stored in routesmysql
+                int size = mySQLiteHelper.getRoutesMysqlNum();
+                Log.d(TAG, "how many routes mysql in total " + size);
+
+                if (size > 0) {
+                    for (int i = 0; i < size; i++) {
+                        List<LatLng> list = mySQLiteHelper.getRoutesMysql(i);
+                        drawRoutes(list);
+                    }
+                }
+
+                mySQLiteHelper.deleteMysqlTable();
+            }
+        }
+    }
 }

@@ -120,7 +120,7 @@ public class CreateRoute extends AppCompatActivity {
 
                 finish();
 
-                Intent intent = new Intent(CreateRoute.this, MainAfterLogin.class);
+                Intent intent = new Intent(CreateRoute.this, Main2Activity.class);
                 intent.putExtra("userId", userId);
                 startActivity(intent);
             }

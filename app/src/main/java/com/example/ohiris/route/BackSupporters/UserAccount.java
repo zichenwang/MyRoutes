@@ -1,7 +1,11 @@
 package com.example.ohiris.route.BackSupporters;
 
 
+import android.util.Log;
+
 public class UserAccount {
+    private static final String TAG = "UserAccount";
+
     private long id = 0;
     private String name;
     private String email;
@@ -13,6 +17,8 @@ public class UserAccount {
     private int weight;
     private int activeLevel;
 
+    private double bmi=0;
+
     public  UserAccount(){
 
     }
@@ -23,6 +29,33 @@ public class UserAccount {
         this.email = email;
         this.password = password;
 
+    }
+
+    public double calBMI(){
+        double inch = Math.floor(height);
+        int inches = (int)(inch*12 + (height - inch));
+
+        double heightM = inches * 0.025;
+        Log.d(TAG, "height after conversion: " + heightM);
+
+        double weightKG = weight*0.45;
+
+        double suqare_weightKG = weightKG*weightKG;
+
+        bmi = heightM / suqare_weightKG;
+
+        return bmi;
+    }
+
+    public boolean checkHealthy(double bmitemp){
+        boolean res = false;
+
+        if (bmitemp > 19 && bmitemp < 25){
+            res = true;
+        }
+
+
+        return res;
     }
 
     public String getEmail() {

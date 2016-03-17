@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -19,6 +20,7 @@ import android.widget.TextView;
 import android.content.Intent;
 import android.widget.Toast;
 
+import com.example.ohiris.route.BackSupporters.DatabaseHelper;
 import com.example.ohiris.route.BackSupporters.MySQLiteHelper;
 import com.example.ohiris.route.BackSupporters.UserAccount;
 import com.example.ohiris.route.R;
@@ -27,8 +29,7 @@ import com.example.ohiris.route.R;
  * A login screen that offers login via email/password.
  */
 public class MainActivity extends AppCompatActivity {
-
-    private UserAccount myUser;
+    private final static String TAG = "MainActivity";
 
     /**
      * A dummy authentication store containing known user names and passwords.
@@ -79,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         });
 
         mLoginFormView = findViewById(R.id.login_form);
-        signupTextView = (TextView)findViewById(R.id.tosignup_textview);
+        signupTextView = (TextView) findViewById(R.id.tosignup_textview);
         signupTextView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -157,6 +158,10 @@ public class MainActivity extends AppCompatActivity {
         return password.length() > 4;
     }
 
+    public void test() {
+        Log.d(TAG, "test ok");
+    }
+
     /**
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
@@ -166,6 +171,9 @@ public class MainActivity extends AppCompatActivity {
         private final String mEmail;
         private final String mPassword;
         private final Context mContext;
+
+        private long uId = 0;
+        private long newId = 0;
 
         UserLoginTask(String email, String password, Context context) {
             mEmail = email;
@@ -177,28 +185,70 @@ public class MainActivity extends AppCompatActivity {
         protected Boolean doInBackground(Void... params) {
             // TODO: attempt authentication against a network service.
 
-            MySQLiteHelper dbHelper = null;
+            //MySQLiteHelper dbHelper = null;
+            DatabaseHelper databaseHelper;
 
-            dbHelper = new MySQLiteHelper(mContext);
-            myUser = dbHelper.getUser(mEmail);
+            UserAccount userAccount = new UserAccount();
 
+//            dbHelper = new MySQLiteHelper(mContext);
+//            myUser = dbHelper.getUser(mEmail);
             try {
-                if (myUser.getId()>0) {
-                    // Account exists, check password.
-                    if (myUser.getPassword().equals(mPassword))
-                        return true;
-                    else
-                        return false;
-                } else {
-                    myUser.setPassword(mPassword);
-                    return true;
+                //get the id and password
+                if (mEmail != null) {
+                    databaseHelper = new DatabaseHelper();
+                    userAccount = databaseHelper.retrieve_userAccount(mEmail);
+                    uId = userAccount.getId();
+                    Log.d(TAG, "userId: " + uId);
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
 
-            } finally {
             }
 
+            if (uId > 0) {
+                try {
+                    //find the password and check
+                    String passwordreal = userAccount.getPassword();
+                    if (passwordreal.equals(mPassword)) {
+                        Log.d(TAG, "found");
+                        return true;
+                    } else {
+                        Log.d(TAG, "not found");
+                        return false;
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
 
-
+                }
+            } else if (uId == 0) {
+                Log.d(TAG, "uid == 0");
+                databaseHelper = new DatabaseHelper();
+                try {
+                    newId = (long) (databaseHelper.retrieve_userNum() + 1);
+                    Log.d(TAG, "new id:" + uId);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+                return true;
+            }
+//
+//
+//            try {
+//
+//                if (myUser.getId()>0) {
+//                    // Account exists, check password.
+//                    if (myUser.getPassword().equals(mPassword))
+//                        return true;
+//                    else
+//                        return false;
+//                } else {
+//                    myUser.setPassword(mPassword);
+//                    return true;
+//                }
+//
+//            } finally {
+//            }
+            return false;
         }
 
         @Override
@@ -206,30 +256,31 @@ public class MainActivity extends AppCompatActivity {
             mAuthTask = null;
 
             if (success) {
-                if (myUser.getId()>0){
+                if (uId > 0) {
                     finish();
-                    Intent myIntent = new Intent(MainActivity.this,MainAfterLogin.class);
-                    myIntent.putExtra("userId", myUser.getId());
-                    Toast.makeText(MainActivity.this, "" + myUser.getId(), Toast.LENGTH_SHORT).show();
+                    Intent myIntent = new Intent(MainActivity.this, Main2Activity.class);
+                    myIntent.putExtra("userId", uId);
+                    Toast.makeText(MainActivity.this, "" + uId, Toast.LENGTH_SHORT).show();
                     MainActivity.this.startActivity(myIntent);
-                } else {
+                } else if (uId == 0) {
                     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {
                         @Override
                         public void onClick(DialogInterface dialog, int which) {
-                            switch (which){
+                            switch (which) {
                                 case DialogInterface.BUTTON_POSITIVE:
                                     //MySQLiteHelper dbTools=null;
-                                    try{
+                                    try {
+
+                                        test();
 //                                        finish();
 //                                        dbTools = new MySQLiteHelper(mContext);
 //                                        myUser=dbTools.insertUser(myUser);
 //                                        Toast myToast = Toast.makeText(mContext,String.valueOf(myUser.getId()), Toast.LENGTH_SHORT);
 //                                        myToast.show();
-
-
                                         Intent myIntent = new Intent(MainActivity.this, Signup1.class);
+                                        myIntent.putExtra("userId", newId);
                                         MainActivity.this.startActivity(myIntent);
-                                    } finally{
+                                    } finally {
 //                                        if (dbTools!=null)
 //                                            dbTools.close();
                                     }
@@ -246,6 +297,8 @@ public class MainActivity extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this.mContext);
                     builder.setMessage("Email not found. Click CREATE to Sign Up").setPositiveButton("CREATE", dialogClickListener)
                             .setNegativeButton("BACK", dialogClickListener).show();
+
+
                 }
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));

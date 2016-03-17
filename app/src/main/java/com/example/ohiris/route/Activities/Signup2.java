@@ -57,8 +57,8 @@ public class Signup2 extends AppCompatActivity {
             userAccount.setName(extras.getString("username"));
             userAccount.setEmail(extras.getString("email"));
             userAccount.setPassword(extras.getString("password"));
+            userAccount.setId(extras.getLong("userId"));
         }
-
 
         /*****************************************************************************************/
 
@@ -177,7 +177,7 @@ public class Signup2 extends AppCompatActivity {
 
                 Log.d(TAG, "userid: " + userAccount.getId());
 
-                Intent intent = new Intent(Signup2.this, MainAfterLogin.class);
+                Intent intent = new Intent(Signup2.this, Main2Activity.class);
                 intent.putExtra("userId", userAccount.getId());
                 startActivity(intent);
 

@@ -21,17 +21,21 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private final static String DATABASE_NAME = "route.db";
     private final static String TABLE_NAME_USERS = "users";
     private final static String TABLE_NAME_ROUTES = "routes";
+    private final static String TABLE_NAME_ROUTES_MYSQL = "routesmysql";
 
     private long userId;
 
     private DatabaseHelper databaseHelper;
 
-    private final static String CREATE_TABLE_USERS = "create table " + TABLE_NAME_USERS + " (userId Integer primary key autoincrement, " +
-            " username text, email text, password text, gender text, age Integer, height real, weight Integer, activelevel Integer)";
+    private final static String CREATE_TABLE_USERS = "create table " + TABLE_NAME_USERS + " (userId Integer, " +
+            "username text, email text, password text, gender text, age Integer, height real, weight Integer, activelevel Integer)";
 
     private final static String CREATE_TABLE_ROUTES = "create table " + TABLE_NAME_ROUTES + " (routeId Integer, " +
             "userId Integer, " + "name text, time Integer, speed real, distance real, date text, level Integer, share Integer)";
 
+    private final static String CREATE_TABLE_ROUTES_MYSQL = "create table " + TABLE_NAME_ROUTES_MYSQL + " (id Integer, " +
+            "userId Integer, routeId Integer, " +
+            " latitude real, longitude real)";
 
     public MySQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DB_VERSION);
@@ -51,6 +55,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
         sqLiteDatabase.execSQL(CREATE_TABLE_USERS);
         sqLiteDatabase.execSQL(CREATE_TABLE_ROUTES);
+        sqLiteDatabase.execSQL(CREATE_TABLE_ROUTES_MYSQL);
 
     }
 
@@ -63,6 +68,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             if (oldVersion < 10) {
                 sqLiteDatabase.execSQL(CREATE_TABLE_USERS);
                 sqLiteDatabase.execSQL(CREATE_TABLE_ROUTES);
+                sqLiteDatabase.execSQL(CREATE_TABLE_ROUTES_MYSQL);
+
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -80,6 +87,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     public UserAccount insertUser(UserAccount queryValues) {
         SQLiteDatabase database = this.getWritableDatabase();
         ContentValues values = new ContentValues();
+        values.put("userId", queryValues.getId());
         values.put("username", queryValues.getName());
         values.put("email", queryValues.getEmail());
         values.put("password", queryValues.getPassword());
@@ -90,8 +98,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         values.put("activelevel", queryValues.getActiveLevel());
         Log.d(TAG, values.toString());
 
-        final long userid = database.insert(TABLE_NAME_USERS, null, values);
-        queryValues.setId(userid);
+        database.insert(TABLE_NAME_USERS, null, values);
         database.close();
 
         final UserAccount userAccount = queryValues;
@@ -100,7 +107,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
             protected Void doInBackground(Integer... params) {
                 try {
                     databaseHelper = new DatabaseHelper();
-                    databaseHelper.connectToDB_insertUser(userAccount, userid);
+                    databaseHelper.connectToDB_insertUser(userAccount);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -123,19 +130,20 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return database.update(TABLE_NAME_USERS, values, "userId = ?", new String[]{String.valueOf(queryValues.getId())});
     }
 
-    public UserAccount getUser(String email) {
-        String query = "Select userId, password from " + TABLE_NAME_USERS + " where email ='" + email + "'";
-        UserAccount myUser = new UserAccount(0, "", "email", "");
-        SQLiteDatabase database = this.getReadableDatabase();
-        Cursor cursor = database.rawQuery(query, null);
-        if (cursor.moveToFirst()) {
-            do {
-                myUser.setId(cursor.getLong(0));
-                myUser.setPassword(cursor.getString(1));
-            } while (cursor.moveToNext());
-        }
-        return myUser;
-    }
+
+//    public UserAccount getUser(long uId) {
+//        String query = "Select userId, password from " + TABLE_NAME_USERS + " where email ='" + email + "'";
+//        UserAccount myUser = new UserAccount(0, "", "email", "");
+//        SQLiteDatabase database = this.getReadableDatabase();
+//        Cursor cursor = database.rawQuery(query, null);
+//        if (cursor.moveToFirst()) {
+//            do {
+//                myUser.setId(cursor.getLong(0));
+//                myUser.setPassword(cursor.getString(1));
+//            } while (cursor.moveToNext());
+//        }
+//        return myUser;
+//    }
 
     public int insertPoints(final long userid, List<LatLng> list) {
         this.userId = userid;
@@ -301,6 +309,82 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     }
 
+//    private final static String CREATE_TABLE_ROUTES_MYSQL = "create table " + TABLE_NAME_ROUTES_MYSQL + " (id Integer, userId Integer, routeId Integer, " +
+//            " latitude real, longitude real)";
+
+    public int storeRoutesFromMysql(List<LatLng> list, long uId, int rId){
+
+        int size = list.size();
+        Log.d(TAG, "size of Lat list " + size);
+
+
+        int id = getRoutesMysqlNum();
+        Log.d(TAG, "id of this route: " + id);
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+        for (int i = 0; i < size; i++) {
+            double la = list.get(i).latitude;
+            double lon = list.get(i).longitude;
+
+            ContentValues initialValues = new ContentValues();
+            initialValues.put("id", id);
+            initialValues.put("userId", uId);
+            initialValues.put("routeId", rId);
+            initialValues.put("latitude", la);
+            initialValues.put("longitude", lon);
+            Log.d(TAG, initialValues.toString());
+
+            db.insert("routesmysql", null, initialValues);
+
+        }
+
+        db.close();
+
+        return getRoutesMysqlNum();
+
+    }
+
+    public int getRoutesMysqlNum(){
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor mCount = db.rawQuery("select count(*) from " + "(select distinct id from routesmysql)", null);
+        mCount.moveToFirst();
+        int res = mCount.getInt(0);
+        Log.d(TAG, "how many routes: " + res);
+        mCount.close();
+        db.close();
+
+        return res;
+    }
+
+    public List<LatLng> getRoutesMysql(int id){
+
+        List<LatLng> list = new ArrayList<LatLng>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String request = "select latitude, longitude from routesmysql where id='" + id + "'";
+        Cursor cursor = db.rawQuery(request, new String[]{});
+
+        if (cursor.getCount() == 0) {
+            return list;
+        }
+        for (int i = 0; i < cursor.getCount(); i++) {
+            cursor.moveToPosition(i);
+            LatLng item = new LatLng(cursor.getDouble(0), cursor.getDouble(1));
+            list.add(item);
+            Log.d(TAG, "mysql: " + item.toString());
+        }
+        cursor.close();
+        db.close();
+
+        return list;
+    }
+
+
+    /*****************delete**************/
+
 
     public void deleteAll(Context context) {
 //        SQLiteDatabase db = this.getWritableDatabase();
@@ -309,6 +393,12 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 //        db.execSQL("D");
 
         context.deleteDatabase(DATABASE_NAME);
+    }
+
+    public void deleteMysqlTable(){
+        SQLiteDatabase db = this.getWritableDatabase();
+        db.execSQL("DELETE FROM " + TABLE_NAME_ROUTES_MYSQL);
+        db.close();
     }
 
 //    public class CreateUserTask extends AsyncTask<Void, Void, Boolean> {

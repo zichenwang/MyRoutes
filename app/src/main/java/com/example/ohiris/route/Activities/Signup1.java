@@ -26,11 +26,18 @@ public class Signup1 extends AppCompatActivity {
     private MySQLiteHelper mySQLiteHelper;
 
     private UserAccount userAccount;
+    private long userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_signup1);
+
+        Bundle extras = getIntent().getExtras();
+        if (extras == null) {
+            return;
+        }
+        userId = extras.getLong("userId");
 
 //        if (savedInstanceState == null) {
 //            Bundle bundle = getIntent().getExtras();
@@ -80,6 +87,7 @@ public class Signup1 extends AppCompatActivity {
                         intent.putExtra("username", nameStr);
                         intent.putExtra("password", p1);
                         intent.putExtra("email", eStr);
+                        intent.putExtra("userId", userId);
                         startActivity(intent);
                     } finally {
 //                        if (mySQLiteHelper != null) {
