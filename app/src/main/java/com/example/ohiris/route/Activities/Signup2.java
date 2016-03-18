@@ -177,6 +177,7 @@ public class Signup2 extends AppCompatActivity {
 
                 Log.d(TAG, "userid: " + userAccount.getId());
 
+                finish();
                 Intent intent = new Intent(Signup2.this, Main2Activity.class);
                 intent.putExtra("userId", userAccount.getId());
                 startActivity(intent);

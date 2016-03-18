@@ -1,6 +1,7 @@
 package com.example.ohiris.route.Activities;
 
 import android.app.Dialog;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
@@ -10,6 +11,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.ContactsContract;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
@@ -23,11 +25,15 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.example.ohiris.route.BackSupporters.DatabaseHelper;
 import com.example.ohiris.route.BackSupporters.MySQLiteHelper;
+import com.example.ohiris.route.BackSupporters.Route;
 import com.example.ohiris.route.BackSupporters.UserAccount;
 import com.example.ohiris.route.R;
 import com.google.android.gms.common.ConnectionResult;
@@ -38,6 +44,7 @@ import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
@@ -54,13 +61,17 @@ public class Main2Activity extends AppCompatActivity
     private static final String TAG = "Main2Activity";
 
 
-    private static final int MAP_ZOOM = 15; // Google Maps supports 1-21
+    private static final int MAP_ZOOM = 17; // Google Maps supports 1-21
     private boolean mPermissionDenied = false;
     private GoogleMap mMap;
     private GoogleApiClient mGoogleApiClient;
+    private UiSettings mUiSettings;
+
 
     private Button create_button;
     private Button recommend_button;
+
+    private Spinner spinner;
 
     private long userId;
 
@@ -70,6 +81,10 @@ public class Main2Activity extends AppCompatActivity
     private MySQLiteHelper mySQLiteHelper;
 
     private ShowRoutesTask showRoutesTask = null;
+    private GetUserTask getUserTask = null;
+    private RecommendTask recommendTask = null;
+
+    private List<Route> routes;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -84,6 +99,8 @@ public class Main2Activity extends AppCompatActivity
         }
         userId = extras.getLong("userId");
         Toast.makeText(Main2Activity.this, "" + userId, Toast.LENGTH_SHORT).show();
+
+        routes = new ArrayList<Route>();
 //
 //        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
 //        fab.setOnClickListener(new View.OnClickListener() {
@@ -103,6 +120,8 @@ public class Main2Activity extends AppCompatActivity
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
 
+        spinner = (Spinner) findViewById(R.id.spinner_route_number);
+
         // Create an instance of GoogleAPIClient.
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         if (status != ConnectionResult.SUCCESS) {
@@ -120,9 +139,10 @@ public class Main2Activity extends AppCompatActivity
 
                 // Check if we were successful in obtaining the map.
                 if (mMap != null) {
+                    mUiSettings = mMap.getUiSettings();
+                    mUiSettings.setZoomControlsEnabled(true);
+                    mUiSettings.setZoomGesturesEnabled(true);
                     setMap();
-                    showRoutesTask = new ShowRoutesTask(userId, Main2Activity.this);
-                    showRoutesTask.execute((Void) null);
                 }
             }
 
@@ -144,94 +164,30 @@ public class Main2Activity extends AppCompatActivity
             public void onClick(View view) {
 //                setRoutes();
 
+                final ProgressDialog progressDialog = new ProgressDialog(Main2Activity.this,
+                        R.style.AppTheme_Dark_Dialog);
+                progressDialog.setIndeterminate(true);
+                progressDialog.setMessage("Selecting routes just for you ... ");
+                progressDialog.show();
                 //clear the map
                 mMap.clear();
 
                 //get use details
+                getUserTask = new GetUserTask(userId, progressDialog, Main2Activity.this);
+                getUserTask.execute((Void) null);
 
                 //get current location
 
                 //choose routes from mysql based on bmi, active level, distance1 and distance 2
 
 
-
             }
         });
     }
 
-//    public void setRoutes() {
-//
-//        final long uId = this.userId;
-//
-//        new AsyncTask<Integer, Void, Void>() {
-//            MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Main2Activity.this);
-//
-//            @Override
-//            protected Void doInBackground(Integer... params) {
-//                try {
-//                    databaseHelper = new DatabaseHelper();
-//                    int res = databaseHelper.retrieve_userNum();
-//                    Log.d(TAG, "number of users in MySQL: " + res);
-//
-//                    for (int i = 1; i <= res; i++) {
-//                        if ((long) i == uId) {
-//                            continue;
-//                        }
-//                        Log.d(TAG, "user id: " + i);
-//                        List<Integer> rIds = new ArrayList<Integer>();
-//
-//                        //for each user
-//                        rIds = databaseHelper.retrieve_routesNum((long) i);
-//
-//                        for (int j = 0; j < rIds.size(); j++) {
-////                            MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Main2Activity.this);
-////                            mySQLiteHelper.storeRoutesFromMysql((long)i, j);
-//
-//                            List<LatLng> list = databaseHelper.retrieve_routes((long) i, j);
-//
-////                            drawRoutes(list);
-//
-//                            Log.d(TAG, "size of the list: " + list.size());
-//                            MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Main2Activity.this);
-//                            mySQLiteHelper.storeRoutesFromMysql(list, (long) i, j);
-//
-//                        }
-//
-//                    }
-//
-//                    //get routes stored in routesmysql
-//                    int size = mySQLiteHelper.getRoutesMysqlNum();
-//                    Log.d(TAG, "how many routes mysql in total " + size);
-//
-//                    if (size > 0) {
-//                        for (int i = 0; i < size; i++) {
-//                            List<LatLng> list = mySQLiteHelper.getRoutesMysql(i);
-//                            drawRoutes(list);
-//                        }
-//                    }
-//
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//                return null;
-//            }
-//        }.execute(1);
-
-
-//        int size = mySQLiteHelper1.getRoutesNum(userId);
-//        Log.d(TAG, "how many routes in total " + size);
-//
-//        for (int i = 0; i < size; i++) {
-//            List<LatLng> list = mySQLiteHelper1.getRoutes(userId, ""+ i);
-//            drawRoutes(list);
-//        }
-
-
-//    }
-
 
     public void drawRoutes(List<LatLng> list) {
-        Toast.makeText(Main2Activity.this, "success", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(Main2Activity.this, "success", Toast.LENGTH_SHORT).show();
 
 //        Color randomColor = colorGenerator();
         Random rnd = new Random();
@@ -344,6 +300,15 @@ public class Main2Activity extends AppCompatActivity
 
         }
 
+        ProgressDialog progressDialog = new ProgressDialog(Main2Activity.this,
+                R.style.AppTheme_Dark_Dialog);
+        progressDialog.setIndeterminate(true);
+        progressDialog.setMessage("Trying to show routes around you ... ");
+
+        showRoutesTask = new ShowRoutesTask(userId, progressDialog, Main2Activity.this);
+        showRoutesTask.execute((Void) null);
+        progressDialog.show();
+
     }
 
     public void getMyCurrentLocation() {
@@ -434,14 +399,58 @@ public class Main2Activity extends AppCompatActivity
 
     }
 
+    public void forSpinner() {
+        int size = routes.size();
+        Log.d(TAG, "size of recommended route: " + size);
+
+        List<String> array = new ArrayList<String>();
+        array.add("choose one");
+        //String[] array = new String[size+1];
+        //array[0] = "choose one";
+        for (int i = 1; i <= size; i++) {
+//            array[i] = "" + i;
+            array.add(""+i);
+        }
+
+        //Log.d(TAG, "the last number of array: " + array[array.length-1]);
+
+//        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+//                this, android.R.layout.simple_spinner_item, array);
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(
+                this,R.layout.spinner_item, array);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setAdapter(adapter);
+        spinner.setSelection(0, true);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int position, long ids) {
+
+                if (position > 0) {
+                    mMap.clear();
+                    List<LatLng> list = mySQLiteHelper.getRoutesMysql(position-1);
+                    drawRoutes(list);
+                }
+
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+    }
+
     public class ShowRoutesTask extends AsyncTask<Void, Void, Boolean> {
         private long uId;
         private Context context;
 
         private MySQLiteHelper mySQLiteHelper;
         private DatabaseHelper databaseHelper;
+        private ProgressDialog progressDialog;
 
-        public ShowRoutesTask(long uId, Context context) {
+
+        public ShowRoutesTask(long uId, ProgressDialog progressDialog, Context context) {
+            this.progressDialog = progressDialog;
             this.uId = uId;
             this.context = context;
         }
@@ -465,7 +474,7 @@ public class Main2Activity extends AppCompatActivity
                     Log.d(TAG, "user id: " + i);
                     List<Integer> rIds = new ArrayList<Integer>();
 
-                    //for each user
+                    //for each user has a route id list
                     rIds = databaseHelper.retrieve_routesNum((long) i);
 
                     for (int j = 0; j < rIds.size(); j++) {
@@ -473,10 +482,13 @@ public class Main2Activity extends AppCompatActivity
 //                            mySQLiteHelper.storeRoutesFromMysql((long)i, j);
 
                         List<LatLng> list = databaseHelper.retrieve_routes((long) i, j);
-
-//                            drawRoutes(list);
-
                         Log.d(TAG, "size of the list: " + list.size());
+
+                        //store the start point and ids
+                        int startLocs = mySQLiteHelper.insertStartPoints((long) i, j, list.get(0).latitude, list.get(0).longitude);
+                        Log.d(TAG, "start locs: " + startLocs);
+
+
                         MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Main2Activity.this);
                         check = mySQLiteHelper.storeRoutesFromMysql(list, (long) i, j);
                     }
@@ -499,7 +511,7 @@ public class Main2Activity extends AppCompatActivity
         protected void onPostExecute(final Boolean success) {
             super.onPostExecute(success);
 
-            if(success){
+            if (success) {
                 //get routes stored in routesmysql
                 int size = mySQLiteHelper.getRoutesMysqlNum();
                 Log.d(TAG, "how many routes mysql in total " + size);
@@ -511,7 +523,10 @@ public class Main2Activity extends AppCompatActivity
                     }
                 }
 
-                databaseHelper = new DatabaseHelper();
+                progressDialog.cancel();
+
+                mySQLiteHelper.deleteMysqlTable();
+
             }
         }
     }
@@ -519,48 +534,181 @@ public class Main2Activity extends AppCompatActivity
 
     //get user details
     //calculate bmi and check health status
-    public class GetUserTask extends AsyncTask<Void, Void, Boolean>{
+    public class GetUserTask extends AsyncTask<Void, Void, Boolean> {
+        private long uId;
+        private Context context;
+        private UserAccount userAccount;
+        private ProgressDialog progressDialog;
 
-
-        public GetUserTask(){
-
+        public GetUserTask(long id, ProgressDialog progressDialog, Context context) {
+            this.uId = id;
+            this.context = context;
+            this.progressDialog = progressDialog;
         }
 
         @Override
         protected Boolean doInBackground(Void... voids) {
-            return null;
+            DatabaseHelper databaseHelper = new DatabaseHelper();
+
+            try {
+                userAccount = databaseHelper.retrieve_userDetails(uId);
+                if (userAccount.getActiveLevel() >= 0) {
+                    return true;
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return false;
         }
 
         @Override
-        protected void onPostExecute(Boolean aBoolean) {
-            super.onPostExecute(aBoolean);
+        protected void onPostExecute(Boolean success) {
+            super.onPostExecute(success);
+
+            if (success) {
+                userAccount.calBMI();
+                boolean res = userAccount.checkHealthy();
+
+                if (res) {//if in healthy range
+                    RecommendTask recommendTask = new RecommendTask(userAccount, progressDialog, context, 1);
+                    recommendTask.execute((Void) null);
+                } else {
+                    RecommendTask recommendTask = new RecommendTask(userAccount, progressDialog, context, 0);
+                    recommendTask.execute((Void) null);
+                }
+
+            } else {
+                Log.d(TAG, "can't get user's details");
+            }
+
+
         }
     }
 
     //select routes from the mysql
     //store in local database
     //show routes
-    public class RecommendTask extends AsyncTask<Void, Void, Boolean>{
+    public class RecommendTask extends AsyncTask<Void, Void, Boolean> {
         private UserAccount userAccount;
+        private Context context;
+        private int type;
+        private ProgressDialog progressDialog;
 
-        public RecommendTask(){
-
+        public RecommendTask(UserAccount userAccount, ProgressDialog progressDialog, Context context, int type) {
+            this.userAccount = userAccount;
+            this.context = context;
+            this.type = type;
+            this.progressDialog = progressDialog;
         }
 
 
         @Override
         protected Boolean doInBackground(Void... voids) {
+            MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(context);
+            Log.d(TAG, "type: " + type);
+            //get the routes that is smaller than 5km
+            List<Route> listRoute = mySQLiteHelper.getFilteredRoutes(5, currentLocation);
+
+            Log.d(TAG, "number of routes that is in 5 km: " + listRoute.size());
+
+            int distance = 0;
+            int level = 0;
 
 
+            if (type == 1) {
+                Log.d(TAG, "healthy");
+                //distance from current smaller than 5km,
+                //level and distance of route depends on active levels
+
+                level = 3;
+                if (userAccount.getActiveLevel() == 0) {
+                    distance = 3;
+                } else if (userAccount.getActiveLevel() <= 2) {
+                    distance = 5;
+                } else if (userAccount.getActiveLevel() <= 5) {
+                    distance = 20;
+                }
+            }
+
+            if (type == 0) {
+                Log.d(TAG, "unhealthy");
+                //distance from current smaller than 5km,
+                //level 1 or 2,
+                //distance of route depends on active level
+
+                level = 1;
+
+                if (userAccount.getActiveLevel() <= 1) {
+                    distance = 3;
+                } else if (userAccount.getActiveLevel() <= 3) {
+                    distance = 4;
+                } else if (userAccount.getActiveLevel() <= 5) {
+                    distance = 5;
+                }
+            }
+
+            DatabaseHelper databaseHelper = new DatabaseHelper();
+            Log.d(TAG, "this distance: " + distance + " this level: " + level);
+
+            try {
+                for (int i = 0; i < listRoute.size(); i++) {
+                    Log.d(TAG, "this user: " + listRoute.get(i).getUserId() + " this route: " + listRoute.get(i).getRouteId());
+                    Route r = databaseHelper.retrieve_routesDetail(listRoute.get(i).getUserId(), listRoute.get(i).getRouteId(), distance, level);
+
+                    if (r.getDistance() <= distance && r.getLevel() <= level) {
+                        routes.add(r);
+                        Log.d(TAG, "level: " + r.getLevel());
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
 
+            try {
+                for (int i = 0; i < routes.size(); i++) {
+                    List<LatLng> list = databaseHelper.retrieve_routes(routes.get(i).getUserId(), routes.get(i).getRouteId());
+                    Log.d(TAG, "size of the route: " + list.size());
 
-            return null;
+                    mySQLiteHelper.storeRoutesFromMysql(list, routes.get(i).getUserId(), routes.get(i).getRouteId());
+                }
+
+                return true;
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+
+            return false;
         }
 
         @Override
         protected void onPostExecute(Boolean success) {
             super.onPostExecute(success);
+            mySQLiteHelper = new MySQLiteHelper(context);
+
+            if (success) {
+                //get routes stored in routesmysql
+                int size = mySQLiteHelper.getRoutesMysqlNum();
+                Log.d(TAG, "how many routes mysql in total " + size);
+
+                if (size > 0) {
+                    for (int i = 0; i < size; i++) {
+                        List<LatLng> list = mySQLiteHelper.getRoutesMysql(i);
+                        drawRoutes(list);
+                    }
+                }
+
+                forSpinner();
+
+                progressDialog.cancel();
+
+
+            }
+
+
         }
     }
 

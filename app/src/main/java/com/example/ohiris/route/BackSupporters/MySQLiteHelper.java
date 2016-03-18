@@ -5,6 +5,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
+import android.location.Location;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -22,6 +23,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private final static String TABLE_NAME_USERS = "users";
     private final static String TABLE_NAME_ROUTES = "routes";
     private final static String TABLE_NAME_ROUTES_MYSQL = "routesmysql";
+    private final static String TABLE_NAME_STARTLOCS = "startLocations";
+
 
     private long userId;
 
@@ -36,6 +39,9 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
     private final static String CREATE_TABLE_ROUTES_MYSQL = "create table " + TABLE_NAME_ROUTES_MYSQL + " (id Integer, " +
             "userId Integer, routeId Integer, " +
             " latitude real, longitude real)";
+
+    private final static String CREATE_TABLE_START_LOCATIONS = "create table " + TABLE_NAME_STARTLOCS + " (userId Integer, " +
+            "routeId Integer, la real, lon real)";
 
     public MySQLiteHelper(Context context) {
         super(context, DATABASE_NAME, null, DB_VERSION);
@@ -56,6 +62,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         sqLiteDatabase.execSQL(CREATE_TABLE_USERS);
         sqLiteDatabase.execSQL(CREATE_TABLE_ROUTES);
         sqLiteDatabase.execSQL(CREATE_TABLE_ROUTES_MYSQL);
+        sqLiteDatabase.execSQL(CREATE_TABLE_START_LOCATIONS);
 
     }
 
@@ -69,6 +76,8 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                 sqLiteDatabase.execSQL(CREATE_TABLE_USERS);
                 sqLiteDatabase.execSQL(CREATE_TABLE_ROUTES);
                 sqLiteDatabase.execSQL(CREATE_TABLE_ROUTES_MYSQL);
+                sqLiteDatabase.execSQL(CREATE_TABLE_START_LOCATIONS);
+
 
             }
         } catch (Exception e) {
@@ -82,7 +91,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         System.out.println("DOWNGRADE DB oldVersion=" + oldVersion + " - newVersion=" + newVersion);
     }
 
-//    private final static String CREATE_TABLE_USERS = "create table " + TABLE_NAME_USERS + " (userId Integer, " +
+    //    private final static String CREATE_TABLE_USERS = "create table " + TABLE_NAME_USERS + " (userId Integer, " +
 //            " username text, email text, password text, gender text, age Integer, height real, weight Integer, activelevel Integer)";
     public UserAccount insertUser(UserAccount queryValues) {
         SQLiteDatabase database = this.getWritableDatabase();
@@ -114,7 +123,6 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
                 return null;
             }
         }.execute(1);
-
 
 
         return queryValues;
@@ -180,7 +188,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         db.close();
 
         final long useridDB = userid;
-        final int routeidDB =routeid;
+        final int routeidDB = routeid;
         final List<LatLng> listDB = list;
         new AsyncTask<Integer, Void, Void>() {
             @Override
@@ -312,7 +320,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 //    private final static String CREATE_TABLE_ROUTES_MYSQL = "create table " + TABLE_NAME_ROUTES_MYSQL + " (id Integer, userId Integer, routeId Integer, " +
 //            " latitude real, longitude real)";
 
-    public int storeRoutesFromMysql(List<LatLng> list, long uId, int rId){
+    public int storeRoutesFromMysql(List<LatLng> list, long uId, int rId) {
 
         int size = list.size();
         Log.d(TAG, "size of Lat list " + size);
@@ -345,7 +353,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 
     }
 
-    public int getRoutesMysqlNum(){
+    public int getRoutesMysqlNum() {
 
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor mCount = db.rawQuery("select count(*) from " + "(select distinct id from routesmysql)", null);
@@ -358,7 +366,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return res;
     }
 
-    public List<LatLng> getRoutesMysql(int id){
+    public List<LatLng> getRoutesMysql(int id) {
 
         List<LatLng> list = new ArrayList<LatLng>();
 
@@ -382,8 +390,92 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         return list;
     }
 
+//    private final static String CREATE_TABLE_START_LOCATIONS = "create table " + TABLE_NAME_STARTLOCS + " (userId Integer, " +
+//            "routeId Integer, la real, lon real)";
 
-    /*****************delete**************/
+    public int insertStartPoints(long uId, int rId, double la, double lon) {
+
+        SQLiteDatabase db = this.getWritableDatabase();
+
+
+        ContentValues initialValues = new ContentValues();
+        initialValues.put("userId", uId);
+        initialValues.put("routeId", rId);
+        initialValues.put("la", la);
+        initialValues.put("lon", lon);
+        Log.d(TAG, initialValues.toString());
+
+        db.insert(TABLE_NAME_STARTLOCS, null, initialValues);
+
+        db.close();
+
+        int res = getStartLocNum();
+        return res;
+
+    }
+
+    public int getStartLocNum() {
+
+        SQLiteDatabase db = this.getReadableDatabase();
+        Cursor mCount = db.rawQuery("select count(*) from startLocations", null);
+        mCount.moveToFirst();
+        int res = mCount.getInt(0);
+        Log.d(TAG, "how many start locations: " + res);
+        mCount.close();
+        db.close();
+
+        return res;
+    }
+
+    public List<Route> getFilteredRoutes(int range, Location location){
+        List<Route> output = new ArrayList<Route>();
+
+        SQLiteDatabase db = this.getReadableDatabase();
+
+        String request = "select * from "+ TABLE_NAME_STARTLOCS;
+        Cursor cursor = db.rawQuery(request, new String[]{});
+
+        if (cursor.getCount() == 0) {
+            return output;
+        }
+        for (int i = 0; i < cursor.getCount(); i++) {
+            cursor.moveToPosition(i);
+
+            Route route = new Route();
+
+            route.setUserId(cursor.getLong(0));
+            route.setRouteId(cursor.getInt(1));
+
+            double la = cursor.getDouble(2);
+            double lon = cursor.getDouble(3);
+
+            Location loc = new Location(location);
+            loc.setLatitude(la);
+            loc.setLongitude(lon);
+
+            double distanceKM = loc.distanceTo(location) / 1000.0;
+            Log.d(TAG,"distance of this: " + distanceKM);
+
+            if (distanceKM <= range) {
+                output.add(route);
+                Log.d(TAG, "userId: " + route.getUserId() + " routeId: " + route.getRouteId());
+            }
+
+        }
+
+
+        cursor.close();
+        db.close();
+
+
+
+        return output;
+    }
+
+
+    /*****************
+     * delete
+     **************/
 
 
     public void deleteAll(Context context) {
@@ -395,7 +487,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         context.deleteDatabase(DATABASE_NAME);
     }
 
-    public void deleteMysqlTable(){
+    public void deleteMysqlTable() {
         SQLiteDatabase db = this.getWritableDatabase();
         db.execSQL("DELETE FROM " + TABLE_NAME_ROUTES_MYSQL);
         db.close();

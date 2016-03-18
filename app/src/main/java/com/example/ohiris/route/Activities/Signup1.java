@@ -88,6 +88,7 @@ public class Signup1 extends AppCompatActivity {
                         intent.putExtra("password", p1);
                         intent.putExtra("email", eStr);
                         intent.putExtra("userId", userId);
+                        finish();
                         startActivity(intent);
                     } finally {
 //                        if (mySQLiteHelper != null) {
@@ -104,6 +105,7 @@ public class Signup1 extends AppCompatActivity {
         backLogin.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                finish();
                 startActivity(new Intent(Signup1.this, MainActivity.class));
             }
         });

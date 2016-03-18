@@ -55,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(MainActivity.this);
+        mySQLiteHelper.deleteAll(MainActivity.this);
+
         // Set up the login form.
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         //populateAutoComplete();
@@ -141,9 +144,9 @@ public class MainActivity extends AppCompatActivity {
             final ProgressDialog progressDialog = new ProgressDialog(MainActivity.this,
                     R.style.AppTheme_Dark_Dialog);
             progressDialog.setIndeterminate(true);
-            progressDialog.setMessage("Authenticating...");
+            progressDialog.setMessage("Signing in ... ");
             progressDialog.show();
-            mAuthTask = new UserLoginTask(email, password, this);
+            mAuthTask = new UserLoginTask(email, password, progressDialog, this);
             mAuthTask.execute((Void) null);
         }
     }
@@ -171,14 +174,16 @@ public class MainActivity extends AppCompatActivity {
         private final String mEmail;
         private final String mPassword;
         private final Context mContext;
+        private ProgressDialog progressDialog;
 
         private long uId = 0;
         private long newId = 0;
 
-        UserLoginTask(String email, String password, Context context) {
+        UserLoginTask(String email, String password, ProgressDialog progressDialog, Context context) {
             mEmail = email;
             mPassword = password;
             mContext = context;
+            this.progressDialog = progressDialog;
         }
 
         @Override
@@ -225,7 +230,7 @@ public class MainActivity extends AppCompatActivity {
                 databaseHelper = new DatabaseHelper();
                 try {
                     newId = (long) (databaseHelper.retrieve_userNum() + 1);
-                    Log.d(TAG, "new id:" + uId);
+                    Log.d(TAG, "new id:" + newId);
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -271,12 +276,7 @@ public class MainActivity extends AppCompatActivity {
                                     //MySQLiteHelper dbTools=null;
                                     try {
 
-                                        test();
-//                                        finish();
-//                                        dbTools = new MySQLiteHelper(mContext);
-//                                        myUser=dbTools.insertUser(myUser);
-//                                        Toast myToast = Toast.makeText(mContext,String.valueOf(myUser.getId()), Toast.LENGTH_SHORT);
-//                                        myToast.show();
+                                        finish();
                                         Intent myIntent = new Intent(MainActivity.this, Signup1.class);
                                         myIntent.putExtra("userId", newId);
                                         MainActivity.this.startActivity(myIntent);
@@ -287,8 +287,8 @@ public class MainActivity extends AppCompatActivity {
                                     break;
 
                                 case DialogInterface.BUTTON_NEGATIVE:
-                                    mPasswordView.setError(getString(R.string.error_incorrect_password));
-                                    mPasswordView.requestFocus();
+//                                    mPasswordView.setError(getString(R.string.error_incorrect_password));
+//                                    mPasswordView.requestFocus();
                                     break;
                             }
                         }
@@ -297,6 +297,7 @@ public class MainActivity extends AppCompatActivity {
                     AlertDialog.Builder builder = new AlertDialog.Builder(this.mContext);
                     builder.setMessage("Email not found. Click CREATE to Sign Up").setPositiveButton("CREATE", dialogClickListener)
                             .setNegativeButton("BACK", dialogClickListener).show();
+                    progressDialog.cancel();
 
 
                 }

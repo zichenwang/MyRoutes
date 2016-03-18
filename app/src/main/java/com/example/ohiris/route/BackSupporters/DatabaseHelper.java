@@ -267,7 +267,7 @@ public class DatabaseHelper {
 
     }
 
-
+    //retrieve location information of a route
     public List<LatLng> retrieve_routes(long userId, int routeId) throws SQLException{
         Connection conn;
         List<LatLng> list = new ArrayList<LatLng>();
@@ -340,6 +340,95 @@ public class DatabaseHelper {
         return userAccount;
     }
 
+    public UserAccount retrieve_userDetails(long id){
+        Connection conn;
+        UserAccount userAccount = new UserAccount();
+
+        try{
+
+            String driverName = "com.mysql.jdbc.Driver";
+            Class.forName(driverName);
+            ResultSet rs = null;
+
+            conn = (Connection) DriverManager.getConnection(url, username, password);
+
+            if (conn != null) {
+                String query = "SELECT * FROM myroutesusers where userid = '" + id + "'";
+                Statement statement = conn.createStatement();
+                rs = statement.executeQuery(query);
+
+                while(rs.next()){
+                    userAccount.setId(rs.getLong(1));
+                    userAccount.setName(rs.getString(2));
+                    userAccount.setEmail(rs.getString(3));
+                    userAccount.setPassword(rs.getString(4));
+                    userAccount.setGender(rs.getString(5));
+                    userAccount.setAge(rs.getInt(6));
+                    userAccount.setHeight(rs.getDouble(7));
+                    userAccount.setWeight(rs.getInt(8));
+                    userAccount.setActiveLevel(rs.getInt(9));
+                    Log.d(TAG, "active level of this user: " + userAccount.getActiveLevel());
+                }
+
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+
+        }
+
+        return userAccount;
+    }
+
+    //retrieve routes that satisfy requirements
+    public Route retrieve_routesDetail(long userId, int routeId, int distance, int level) throws SQLException{
+        Connection conn;
+        Route route = new Route();
+
+        try {
+            String driverName = "com.mysql.jdbc.Driver";
+            Class.forName(driverName);
+            ResultSet rs = null;
+
+            conn = (Connection) DriverManager.getConnection(url, username, password);
+
+            if (conn != null) {
+                String query = "SELECT * FROM myroutesdetails WHERE userid= '" + userId + "' " +
+                        "and routeid = '" + routeId + "' ";
+                Statement statement = conn.createStatement();
+                rs = statement.executeQuery(query);
+
+                while (rs.next()){
+                    route.setRouteId(rs.getInt(1));
+                    route.setUserId(rs.getLong(2));
+                    route.setName(rs.getString(3));
+                    route.setTime(rs.getLong(4));
+                    route.setSpeed(rs.getDouble(5));
+                    route.setDistance(rs.getDouble(6));
+                    route.setDate(rs.getString(7));
+                    route.setLevel(rs.getInt(8));
+                    int share = rs.getInt(9);
+                    boolean shareB = false;
+                    if(share == 1) {
+                        shareB = true;
+                    }
+
+                    route.setShare(shareB);
+
+                }
+
+                statement.close();
+                rs.close();
+                conn.close();
+
+            }
+        }catch (Exception e) {
+            e.printStackTrace();
+
+        }
+
+        return route;
+    }
 
 
 

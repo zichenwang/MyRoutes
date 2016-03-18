@@ -33,27 +33,29 @@ public class UserAccount {
 
     public double calBMI(){
         double inch = Math.floor(height);
-        int inches = (int)(inch*12 + (height - inch));
+        Log.d(TAG, "1: " + inch);
+        double inches = inch*12 + (height - inch)*10;
+        Log.d(TAG, "2: " + inches);
 
         double heightM = inches * 0.025;
         Log.d(TAG, "height after conversion: " + heightM);
 
         double weightKG = weight*0.45;
 
-        double suqare_weightKG = weightKG*weightKG;
+        double suqare_height = heightM*heightM;
 
-        bmi = heightM / suqare_weightKG;
+        bmi = weightKG / suqare_height;
+        Log.d(TAG, "bmi: " + bmi);
 
         return bmi;
     }
 
-    public boolean checkHealthy(double bmitemp){
+    public boolean checkHealthy(){
         boolean res = false;
 
-        if (bmitemp > 19 && bmitemp < 25){
+        if (bmi > 19 && bmi < 25){
             res = true;
         }
-
 
         return res;
     }
