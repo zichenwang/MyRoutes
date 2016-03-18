@@ -78,6 +78,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
     private long startTime;
 
     private long userId;
+    private int routeId;
 
     private Date startDate;
     private Date endDate;
@@ -102,7 +103,8 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
             return;
         }
         userId = extras.getLong("userId");
-        Toast.makeText(Map.this, "" + userId, Toast.LENGTH_SHORT).show();
+        routeId = extras.getInt("routeId");
+        Toast.makeText(Map.this, "" + userId + " " + routeId, Toast.LENGTH_SHORT).show();
 
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         if (status != ConnectionResult.SUCCESS) {
@@ -225,7 +227,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
                 // create a dialog displaying the results
                 AlertDialog.Builder dialogBuilder =
                         new AlertDialog.Builder(Map.this);
-                dialogBuilder.setTitle(R.string.results);
+                //dialogBuilder.setTitle(R.string.results);
 
                 double distanceKM = distance / 1000.0;
                 final double speedKM = distanceKM / totalHours;
@@ -242,14 +244,14 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
 
 
                                 MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Map.this, userId);
-                                int res = mySQLiteHelper.insertPoints(userId, latList);
-                                Log.d(TAG, "route id: " + res);
+                                mySQLiteHelper.insertPoints(userId, routeId, latList);
+                                Log.d(TAG, "routeid: " + routeId);
 
                                 Intent intent = new Intent(Map.this, CreateRoute.class);
                                 intent.putExtra("time", diff);
                                 intent.putExtra("dist", distanceMI);
                                 intent.putExtra("speed", speedMI);
-                                intent.putExtra("routeId", res);
+                                intent.putExtra("routeId", routeId);
                                 intent.putExtra("userId", userId);
 
                                 startActivity(intent);

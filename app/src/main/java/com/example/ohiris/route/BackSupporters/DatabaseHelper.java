@@ -380,7 +380,9 @@ public class DatabaseHelper {
         return userAccount;
     }
 
-    //retrieve routes that satisfy requirements
+
+
+    //retrieve routes details
     public Route retrieve_routesDetail(long userId, int routeId, int distance, int level) throws SQLException{
         Connection conn;
         Route route = new Route();

@@ -50,16 +50,11 @@
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
-        <activity android:name=".Activities.MainAfterLogin" />
         <activity android:name=".Activities.Signup1" />
         <activity android:name=".Activities.CreateRoute" />
         <activity android:name=".Activities.RecommendRoute" />
         <activity android:name=".Activities.Map" />
         <activity android:name=".Activities.Signup2" />
-        <activity
-            android:name=".Test.LoginActivity"
-            android:label="@string/title_activity_login" >
-        </activity>
         <activity android:name=".Activities.RouteDetails" >
         </activity>
         <activity android:name=".Activities.Profile" >
@@ -72,6 +67,8 @@
             android:name=".Activities.Main2Activity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.Dark" >
+        </activity>
+        <activity android:name=".Activities.TrakingActivity" >
         </activity>
     </application>
 

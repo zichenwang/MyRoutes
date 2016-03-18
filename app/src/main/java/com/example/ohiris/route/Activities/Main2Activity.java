@@ -29,6 +29,7 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.ohiris.route.BackSupporters.DatabaseHelper;
@@ -39,7 +40,6 @@ import com.example.ohiris.route.R;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -47,7 +47,9 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.UiSettings;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.sql.SQLException;
@@ -70,7 +72,12 @@ public class Main2Activity extends AppCompatActivity
 
     private Button create_button;
     private Button recommend_button;
+    private Button direct_button;
 
+    private static final String DIRECT_TEXT = "Click the map icon on the right to direct to the start";
+    private static final String START_TEXT = "Click here when you ready to start";
+
+    private TextView tv_level;
     private Spinner spinner;
 
     private long userId;
@@ -86,6 +93,12 @@ public class Main2Activity extends AppCompatActivity
 
     private List<Route> routes;
 
+    private Polyline polyline;
+    private Polyline flatPolyline;
+    private Marker marker;
+
+    private int userNumber;
+    private int routesNumber;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -121,6 +134,8 @@ public class Main2Activity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         spinner = (Spinner) findViewById(R.id.spinner_route_number);
+//        tv_level = (TextView) findViewById(R.id.tv_showLevel);
+//        tv_level.setVisibility(View.GONE);
 
         // Create an instance of GoogleAPIClient.
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
@@ -154,6 +169,7 @@ public class Main2Activity extends AppCompatActivity
             public void onClick(View view) {
                 Intent intent = new Intent(Main2Activity.this, Map.class);
                 intent.putExtra("userId", userId);
+                intent.putExtra("routeId", routesNumber);
                 startActivity(intent);
             }
         });
@@ -163,6 +179,9 @@ public class Main2Activity extends AppCompatActivity
             @Override
             public void onClick(View view) {
 //                setRoutes();
+
+                //tv_level.setVisibility(View.GONE);
+                direct_button.setVisibility(View.GONE);
 
                 final ProgressDialog progressDialog = new ProgressDialog(Main2Activity.this,
                         R.style.AppTheme_Dark_Dialog);
@@ -183,10 +202,20 @@ public class Main2Activity extends AppCompatActivity
 
             }
         });
+
+        direct_button = (Button) findViewById(R.id.btn_direct);
+        direct_button.setVisibility(View.GONE);
+        direct_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(Main2Activity.this, TrakingActivity.class);
+                startActivity(intent);
+            }
+        });
     }
 
 
-    public void drawRoutes(List<LatLng> list) {
+    public void drawRoutes(final List<LatLng> list, final int type) {
         //Toast.makeText(Main2Activity.this, "success", Toast.LENGTH_SHORT).show();
 
 //        Color randomColor = colorGenerator();
@@ -195,9 +224,6 @@ public class Main2Activity extends AppCompatActivity
         Log.d(TAG, "color: " + color);
 
         //add start and end
-        mMap.addMarker(new MarkerOptions().position(list.get(0)).title("START"));
-        mMap.addMarker(new MarkerOptions().position(list.get(list.size() - 1)).title("END"));
-
 
         PolylineOptions polylineOptions = new PolylineOptions().width(10).color(color).geodesic(true);
 
@@ -205,7 +231,48 @@ public class Main2Activity extends AppCompatActivity
             polylineOptions.add(list.get(i));
         }
 
-        mMap.addPolyline(polylineOptions);
+        flatPolyline = mMap.addPolyline(polylineOptions);
+        flatPolyline.setClickable(true);
+        mMap.setOnPolylineClickListener(new GoogleMap.OnPolylineClickListener() {
+            @Override
+            public void onPolylineClick(Polyline polyline) {
+                //tv_level.setVisibility(View.VISIBLE);
+                direct_button.setVisibility(View.VISIBLE);
+                marker = mMap.addMarker(new MarkerOptions().position(list.get(0)).title("START"));
+//                if (polyline == flatPolyline){
+//                    Log.d(TAG,"JERE");
+//                    Toast.makeText(Main2Activity.this, "flat", Toast.LENGTH_LONG);
+//                }
+
+//                if (polyline == hillyPolyline){
+//
+//                }
+
+                //tv_level.setText("Click here when you ready to try");
+                if (type == 1) {
+                    marker.setSnippet("Level 1: flat");
+                    Toast.makeText(getBaseContext(), "Level 1: a flat route", Toast.LENGTH_LONG);
+                }
+
+                if (type == 2) {
+                    marker.setSnippet("Level 2: hilly");
+
+                    //tv_level.setText("Level 2: hilly");
+
+                    Toast.makeText(getBaseContext(), "Level 2: a hilly route", Toast.LENGTH_LONG);
+                }
+
+                if (type == 3) {
+                    marker.setSnippet("Level 3: hilly and curved");
+
+                    //tv_level.setText("Level 3: hilly and curved");
+                    Toast.makeText(getBaseContext(), "Level 3: a hilly and curved route", Toast.LENGTH_LONG);
+                }
+
+            }
+
+
+        });
 //        CameraPosition cameraPosition = new CameraPosition.Builder()
 //                .target(currentLatLng)
 //                .zoom(MAP_ZOOM)
@@ -273,11 +340,24 @@ public class Main2Activity extends AppCompatActivity
 
     public void setMap() {
 
-        enableMyLocation();
-        mMap.setOnMyLocationButtonClickListener(this);
+
 
         if (mMap != null) {
+            enableMyLocation();
+            mMap.setOnMyLocationButtonClickListener(this);
+            mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
+                @Override
+                public void onMapClick(LatLng latLng) {
+                    if(marker!=null){
+                        marker.setVisible(false);
+                    }
+
+                    //tv_level.setVisibility(View.GONE);
+                    direct_button.setVisibility(View.GONE);
+                }
+            });
             getMyCurrentLocation();
+
         }
 
         if (currentLocation != null) {
@@ -308,7 +388,6 @@ public class Main2Activity extends AppCompatActivity
         showRoutesTask = new ShowRoutesTask(userId, progressDialog, Main2Activity.this);
         showRoutesTask.execute((Void) null);
         progressDialog.show();
-
     }
 
     public void getMyCurrentLocation() {
@@ -378,6 +457,8 @@ public class Main2Activity extends AppCompatActivity
     protected void onResumeFragments() {
         super.onResumeFragments();
         //getMyCurrentLocation();
+        //tv_level.setVisibility(View.GONE);
+        direct_button.setVisibility(View.GONE);
         if (mPermissionDenied) {
             // Permission was not granted, display error dialog.
             mPermissionDenied = false;
@@ -419,6 +500,7 @@ public class Main2Activity extends AppCompatActivity
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(
                 this,R.layout.spinner_item, array);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinner.setVisibility(View.VISIBLE);
         spinner.setAdapter(adapter);
         spinner.setSelection(0, true);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
@@ -427,8 +509,35 @@ public class Main2Activity extends AppCompatActivity
 
                 if (position > 0) {
                     mMap.clear();
+                    mySQLiteHelper = new MySQLiteHelper(Main2Activity.this);
                     List<LatLng> list = mySQLiteHelper.getRoutesMysql(position-1);
-                    drawRoutes(list);
+                    drawRoutes(list, routes.get(position-1).getLevel());
+
+                    //tv_level.setVisibility(View.VISIBLE);
+                    direct_button.setVisibility(View.VISIBLE);
+
+                    int level = routes.get(position-1).getLevel();
+//                    Toast.makeText(Main2Activity.this, "Level 1: a flat route", Toast.LENGTH_LONG);
+                    if (level == 1) {
+                        //marker.setSnippet("Level 1: flat");
+                        Toast.makeText(getBaseContext(), "Level 1: a flat route", Toast.LENGTH_LONG);
+                    }
+
+                    if (level == 2) {
+                        //marker.setSnippet("Level 2: hilly");
+
+                        //tv_level.setText("Level 2: hilly");
+
+                        Toast.makeText(getBaseContext(), "Level 2: a hilly route", Toast.LENGTH_LONG);
+                    }
+
+                    if (level == 3) {
+                        //marker.setSnippet("Level 3: hilly and curved");
+
+                        //tv_level.setText("Level 3: hilly and curved");
+                        Toast.makeText(getBaseContext(), "Level 3: a hilly and curved route", Toast.LENGTH_LONG);
+                    }
+
                 }
 
             }
@@ -453,22 +562,31 @@ public class Main2Activity extends AppCompatActivity
             this.progressDialog = progressDialog;
             this.uId = uId;
             this.context = context;
+            routes.clear();
         }
 
 
         @Override
         protected Boolean doInBackground(Void... voids) {
             mySQLiteHelper = new MySQLiteHelper(this.context);
+            mySQLiteHelper.deleteMysqlTable();
 
             try {
                 databaseHelper = new DatabaseHelper();
-                int res = databaseHelper.retrieve_userNum();
-                Log.d(TAG, "number of users in MySQL: " + res);
+                userNumber = databaseHelper.retrieve_userNum();
+                Log.d(TAG, "number of users in MySQL: " + userNumber);
 
                 int check = 0;
 
-                for (int i = 1; i <= res; i++) {
+                for (int i = 1; i <= userNumber; i++) {
                     if ((long) i == uId) {
+                        List<Integer> temp = databaseHelper.retrieve_routesNum((long) i);
+                        routesNumber = temp.size();
+
+
+
+                        //Route r = databaseHelper.retrieve_routesDetail((long) i, listRoute.get(i).getRouteId(), distance, level);
+
                         continue;
                     }
                     Log.d(TAG, "user id: " + i);
@@ -484,13 +602,20 @@ public class Main2Activity extends AppCompatActivity
                         List<LatLng> list = databaseHelper.retrieve_routes((long) i, j);
                         Log.d(TAG, "size of the list: " + list.size());
 
-                        //store the start point and ids
-                        int startLocs = mySQLiteHelper.insertStartPoints((long) i, j, list.get(0).latitude, list.get(0).longitude);
-                        Log.d(TAG, "start locs: " + startLocs);
+                        if(list.size()>0){
+                            //store the start point and ids
+                            int startLocs = mySQLiteHelper.insertStartPoints((long) i, j, list.get(0).latitude, list.get(0).longitude);
+                            Log.d(TAG, "start locs: " + startLocs);
+                        }
 
 
                         MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(Main2Activity.this);
                         check = mySQLiteHelper.storeRoutesFromMysql(list, (long) i, j);
+
+
+                        Route r = databaseHelper.retrieve_routesDetail((long) i, j, 0, 0);
+                        routes.add(r);
+
                     }
                 }
 
@@ -519,13 +644,15 @@ public class Main2Activity extends AppCompatActivity
                 if (size > 0) {
                     for (int i = 0; i < size; i++) {
                         List<LatLng> list = mySQLiteHelper.getRoutesMysql(i);
-                        drawRoutes(list);
+                        drawRoutes(list, 0);
                     }
                 }
 
                 progressDialog.cancel();
 
-                mySQLiteHelper.deleteMysqlTable();
+                forSpinner();
+
+                //mySQLiteHelper.deleteMysqlTable();
 
             }
         }
@@ -600,12 +727,14 @@ public class Main2Activity extends AppCompatActivity
             this.context = context;
             this.type = type;
             this.progressDialog = progressDialog;
+            routes.clear();
         }
 
 
         @Override
         protected Boolean doInBackground(Void... voids) {
             MySQLiteHelper mySQLiteHelper = new MySQLiteHelper(context);
+            mySQLiteHelper.deleteMysqlTable();
             Log.d(TAG, "type: " + type);
             //get the routes that is smaller than 5km
             List<Route> listRoute = mySQLiteHelper.getFilteredRoutes(5, currentLocation);
@@ -697,9 +826,11 @@ public class Main2Activity extends AppCompatActivity
                 if (size > 0) {
                     for (int i = 0; i < size; i++) {
                         List<LatLng> list = mySQLiteHelper.getRoutesMysql(i);
-                        drawRoutes(list);
+                        drawRoutes(list, 0);
                     }
                 }
+
+//                mySQLiteHelper.deleteMysqlTable();
 
                 forSpinner();
 

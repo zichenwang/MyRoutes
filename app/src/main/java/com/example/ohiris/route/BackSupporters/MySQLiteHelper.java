@@ -153,7 +153,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
 //        return myUser;
 //    }
 
-    public int insertPoints(final long userid, List<LatLng> list) {
+    public int insertPoints(final long userid, int routeid, List<LatLng> list) {
         this.userId = userid;
 
         SQLiteDatabase db = this.getWritableDatabase();
@@ -168,7 +168,7 @@ public class MySQLiteHelper extends SQLiteOpenHelper {
         int size = list.size();
         Log.d(TAG, "size of Lat list " + size);
 
-        int routeid = getRoutesNum(this.userId);
+        //int routeid = getRoutesNum(this.userId);
 
         db = this.getWritableDatabase();
 

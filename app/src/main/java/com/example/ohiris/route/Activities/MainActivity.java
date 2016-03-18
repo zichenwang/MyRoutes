@@ -302,6 +302,7 @@ public class MainActivity extends AppCompatActivity {
 
                 }
             } else {
+                progressDialog.cancel();
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
             }
