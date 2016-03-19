@@ -265,7 +265,7 @@ public class MainActivity extends AppCompatActivity {
                     finish();
                     Intent myIntent = new Intent(MainActivity.this, Main2Activity.class);
                     myIntent.putExtra("userId", uId);
-                    Toast.makeText(MainActivity.this, "" + uId, Toast.LENGTH_SHORT).show();
+                    //Toast.makeText(MainActivity.this, "" + uId, Toast.LENGTH_SHORT).show();
                     MainActivity.this.startActivity(myIntent);
                 } else if (uId == 0) {
                     DialogInterface.OnClickListener dialogClickListener = new DialogInterface.OnClickListener() {

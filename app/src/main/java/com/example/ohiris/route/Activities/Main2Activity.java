@@ -1,5 +1,6 @@
 package com.example.ohiris.route.Activities;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.ProgressDialog;
 import android.content.Context;
@@ -77,7 +78,7 @@ public class Main2Activity extends AppCompatActivity
     private static final String DIRECT_TEXT = "Click the map icon on the right to direct to the start";
     private static final String START_TEXT = "Click here when you ready to start";
 
-    private TextView tv_level;
+    //private TextView tv_level;
     private Spinner spinner;
 
     private long userId;
@@ -97,6 +98,8 @@ public class Main2Activity extends AppCompatActivity
     private Polyline flatPolyline;
     private Marker marker;
 
+    private Route selectedRoute;
+
     private int userNumber;
     private int routesNumber;
     @Override
@@ -111,7 +114,9 @@ public class Main2Activity extends AppCompatActivity
             return;
         }
         userId = extras.getLong("userId");
-        Toast.makeText(Main2Activity.this, "" + userId, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(Main2Activity.this, "" + userId, Toast.LENGTH_SHORT).show();
+
+        Log.d(TAG, "" + userId);
 
         routes = new ArrayList<Route>();
 //
@@ -195,6 +200,8 @@ public class Main2Activity extends AppCompatActivity
                 getUserTask = new GetUserTask(userId, progressDialog, Main2Activity.this);
                 getUserTask.execute((Void) null);
 
+
+
                 //get current location
 
                 //choose routes from mysql based on bmi, active level, distance1 and distance 2
@@ -209,6 +216,16 @@ public class Main2Activity extends AppCompatActivity
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(Main2Activity.this, TrakingActivity.class);
+                if(selectedRoute!=null){
+                    intent.putExtra("userId", selectedRoute.getUserId());
+                    intent.putExtra("routeId", selectedRoute.getRouteId());
+                    Log.d(TAG, "uid: " + selectedRoute.getUserId() + " rId: " + selectedRoute.getRouteId());
+                } else {
+                    AlertDialog.Builder dialogBuilder =
+                            new AlertDialog.Builder(Main2Activity.this);
+                    dialogBuilder.setMessage("Please select a route").setPositiveButton("OK", null);
+                    dialogBuilder.show(); // display the dialog
+                }
                 startActivity(intent);
             }
         });
@@ -512,6 +529,8 @@ public class Main2Activity extends AppCompatActivity
                     mySQLiteHelper = new MySQLiteHelper(Main2Activity.this);
                     List<LatLng> list = mySQLiteHelper.getRoutesMysql(position-1);
                     drawRoutes(list, routes.get(position-1).getLevel());
+
+                    selectedRoute = routes.get(position-1);
 
                     //tv_level.setVisibility(View.VISIBLE);
                     direct_button.setVisibility(View.VISIBLE);

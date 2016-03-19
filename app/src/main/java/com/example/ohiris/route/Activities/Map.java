@@ -104,7 +104,7 @@ public class Map extends AppCompatActivity implements OnMyLocationButtonClickLis
         }
         userId = extras.getLong("userId");
         routeId = extras.getInt("routeId");
-        Toast.makeText(Map.this, "" + userId + " " + routeId, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(Map.this, "" + userId + " " + routeId, Toast.LENGTH_SHORT).show();
 
         int status = GooglePlayServicesUtil.isGooglePlayServicesAvailable(this);
         if (status != ConnectionResult.SUCCESS) {
